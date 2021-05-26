@@ -1,26 +1,34 @@
 <template>
-  <img alt="Vue logo" src="./assets/logo.png">
-  <HelloWorld msg="Welcome to Your Vue.js App"/>
+    <div id="app">
+    <router-view v-slot="{ Component }">
+        <keep-alive>
+            <component :is="Component" />
+        </keep-alive>
+    </router-view>
+    </div>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
-
-export default {
-  name: 'App',
-  components: {
-    HelloWorld
+  export default {
+      name: "app",
+      components:{},
   }
-}
 </script>
-
-<style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
-}
+<style lang="less" >
+    .content{
+        position: absolute;
+        top:0;
+        left: 0;
+        right: 0;
+        bottom:0;
+        z-index: 1;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+    }
+    .pagemain{
+        flex:1 0 auto;
+        height: 0;
+        overflow-y: auto;
+    }
 </style>
