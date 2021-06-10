@@ -1,16 +1,29 @@
-import { createStore } from 'vuex'
+import {createStore} from 'vuex'
 
 export default createStore({
-  state: {
-    activityinfo:{}
-  },
-  mutations: {
-    saveActivity(state,obj){
-      state.activityinfo = obj;
+    state: {
+        titlebar: {
+            show:true,
+            title:'',
+            leftarrow:true,
+            lefttext:'',
+            righttext:'',
+            lefthtml:'',
+            righthtml:'',
+            titlebarclass:'redgradient',
+        },
+        activityinfo: {}
     },
-  },
-  actions: {
-  },
-  modules: {
-  }
+    mutations: {
+        setTitlebar(state, obj) {
+            state.titlebar = Object.assign(state.titlebar,obj)
+        },
+        saveActivity(state, obj) {
+            state.activityinfo = obj;
+        },
+    },
+    actions: {
+
+    },
+    modules: {}
 })

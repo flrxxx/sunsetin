@@ -37,13 +37,17 @@
 
 <style scoped lang="less">
     .footer{
-        height:43px;
+        height:50px;
         flex: 0 0 auto;
         background-color: #fff;
         border-top:1px solid #e0e6ed;
         padding: 0 11px;
         display: flex;
         align-items: center;
+        position: absolute;
+        bottom:0;
+        left: 0;
+        right: 0;
         .footeritem{
             flex:1 0 auto;
             display: flex;

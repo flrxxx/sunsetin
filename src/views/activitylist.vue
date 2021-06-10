@@ -1,5 +1,11 @@
 <template>
-    <div class="content">
+    <div class="content" ref="list" @scroll.passive="scrollEvent($event)">
+        <van-search
+            v-model="search"
+            placeholder="请输入搜索关键词"
+            @search="onSearch"
+            background="linear-gradient(90deg, #ff6050 0%, #dd2b45 100%)"
+        />
         <div class="activity_info">
             <div class="activity_info_bg">
                 <div class="activity_name">{{activityinfo.title}}</div>
@@ -22,68 +28,50 @@
                 </div>
             </div>
         </div>
-        <div class="activitylistitem" ref="list" @scroll.passive="isScroll && scrollEvent($event)">
-            <div class="item" v-for="item in activitylist" :key="item.id">
-                <div class="title">
-                    <div class="iteminfo">
-                        <div class="itemheader">
-                            <img :src="item.avatar">
-                        </div>
-                        <div class="itemtext">
-                            <div class="number">
-                                <span class="cardnum">{{item.index}}</span>号
-                            </div>
-                            <div class="text">{{item.name}}</div>
-                        </div>
-                    </div>
-                    <div class="itemcard">
-                        <i class="icons elderlyicon-toupiaoicon"></i>
-                        <span class="cardnum">{{item.cardnum}}</span>
-                        <span class="cardtext">票</span>
-                    </div>
-                </div>
-                <router-link custom :to="{path:'/activitydetail'}" v-slot="{ navigate}">
-                    <div class="item_img" @click="navigate">
-                        <div class="item_title">{{item.title}}</div>
-                        <img :src="item.images">
-                    </div>
-                </router-link>
-                <div class="item_footer">
-                    <div class="item_label">
-                        <div class="box_item">
-                            <i class="icons elderlyicon-dianzan"></i>
-                            <div class="item_text">{{item.zan}}</div>
-                        </div>
-                        <div class="box_item">
-                            <i class="icons elderlyicon-pinglunicon"></i>
-                            <div class="item_text">{{item.talk}}</div>
-                        </div>
-                        <div class="box_item">
-                            <i class="icons elderlyicon-fenxiang"></i>
-                        </div>
-                    </div>
-                    <div class="item_time">{{item.time}}</div>
-                </div>
+        <div class="activitylistitem" >
+            <div v-if="errorinfo.show">
+                <emptydate :Emptytype="type" :Emptytext="text"></emptydate>
             </div>
+            <div v-else>
+                <hdlist :activitylist="activitylist"></hdlist>
+                <drup_up :loadingtype="loadingtype" :errorClick="errorClick" />
+            </div>
+
         </div>
-        <drup_up :loadingtype="loadingtype" :errorClick="errorClick" />
+
     </div>
 </template>
 
 <script>
-
+import drup_up from '@/components/drup_up.vue';
+import emptydate from '@/components/emptydate.vue';
+import hdlist from '@/components/hd_list.vue';
+import {Search} from 'vant';
 export default {
     name: "activitylist",
-    components:{},
+    components:{
+        drup_up,
+        hdlist,
+        [Search.name]:Search,
+        emptydate
+    },
     data() {
         return {
+            title:'',
             loadingtype:'none',//上滑加载暂不启动
-            pageSize:5,//每页数据条数
+            pageSize:10,//每页数据条数
             loaddata:false,
             currentPage:1,
             isScroll :false,
             scrollTop:0,
-            activitylist:[]
+            activitylist:[],
+            search:'',
+            upload:false,
+            errorinfo:{
+                show:false,
+                type:'error',
+                text:'网络连接失败'
+            }
         }
     },
     computed:{
@@ -93,10 +81,9 @@ export default {
                 return {};
             }else{
                 var temp = JSON.parse(JSON.stringify(this.$store.state.activityinfo));
-                temp.vote = this.$store.state.activityinfo.type == 1 ?  'isnow': 'ispass';
-                return this.$store.state.activityinfo
+                temp.vote = this.$store.state.activityinfo.vote;
+                return this.$store.state.activityinfo;
             }
-
         }
     },
     methods:{
@@ -108,8 +95,10 @@ export default {
         },
         scrollEvent:function(e){
             this.scrollTop = e.srcElement.scrollTop;
-            if(e.srcElement.scrollTop+e.srcElement.offsetHeight>e.srcElement.scrollHeight-100){
-                this.loadMore(); //加载更多
+            if(this.isScroll){
+                if(e.srcElement.scrollTop+e.srcElement.offsetHeight>e.srcElement.scrollHeight-100){
+                    this.loadMore(); //加载更多
+                }
             }
         },
         loadMore:function(){
@@ -119,124 +108,77 @@ export default {
                 this.getData({tab:this.selectdtab,currentPage:this.currentPage});
             }
         },
-        getData:function(obj){
-            var data = [ {
-                id:1,
-                name:'玉都老年文艺团玉都老年文艺团玉都老年文艺团玉都老年文艺团玉都老年文艺团玉都老年文艺团',
-                title:'歌曲合唱《玉都我美丽的家乡》',
-                index:'46',
-                cardnum:'527221',
-                avatar:'https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fattach.bbs.miui.com%2Fforum%2F201311%2F01%2F215828tpmddz2d2bfcz5pk.jpg&refer=http%3A%2F%2Fattach.bbs.miui.com&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=jpeg?sec=1623549721&t=61e51fb424dcd6eb610326db7843f61a',
-                images:'https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fattach.bbs.miui.com%2Fforum%2F201311%2F01%2F215828tpmddz2d2bfcz5pk.jpg&refer=http%3A%2F%2Fattach.bbs.miui.com&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=jpeg?sec=1623549721&t=61e51fb424dcd6eb610326db7843f61a',
-                zan:'389',
-                talk:'253',
-                time:'2021-01-19'
-            },
-                {
-                    id:2,
-                    name:'玉都老年文艺团玉都老年文艺团玉都老年文艺团玉都老年文艺团玉都老年文艺团玉都老年文艺团',
-                    title:'歌曲合唱《玉都我美丽的家乡》',
-                    index:'46',
-                    cardnum:'527221',
-                    avatar:'https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fattach.bbs.miui.com%2Fforum%2F201311%2F01%2F215828tpmddz2d2bfcz5pk.jpg&refer=http%3A%2F%2Fattach.bbs.miui.com&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=jpeg?sec=1623549721&t=61e51fb424dcd6eb610326db7843f61a',
-                    images:'https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fattach.bbs.miui.com%2Fforum%2F201311%2F01%2F215828tpmddz2d2bfcz5pk.jpg&refer=http%3A%2F%2Fattach.bbs.miui.com&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=jpeg?sec=1623549721&t=61e51fb424dcd6eb610326db7843f61a',
-                    zan:'389',
-                    talk:'253',
-                    time:'2021-01-19'
-                },
-                {
-                    id:3,
-                    name:'玉都老年文艺团玉都老年文艺团玉都老年文艺团玉都老年文艺团玉都老年文艺团玉都老年文艺团',
-                    title:'歌曲合唱《玉都我美丽的家乡》',
-                    index:'46',
-                    cardnum:'527221',
-                    avatar:'https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fattach.bbs.miui.com%2Fforum%2F201311%2F01%2F215828tpmddz2d2bfcz5pk.jpg&refer=http%3A%2F%2Fattach.bbs.miui.com&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=jpeg?sec=1623549721&t=61e51fb424dcd6eb610326db7843f61a',
-                    images:'https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fattach.bbs.miui.com%2Fforum%2F201311%2F01%2F215828tpmddz2d2bfcz5pk.jpg&refer=http%3A%2F%2Fattach.bbs.miui.com&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=jpeg?sec=1623549721&t=61e51fb424dcd6eb610326db7843f61a',
-                    zan:'389',
-                    talk:'253',
-                    time:'2021-01-19'
-                },
-                {
-                    id:4,
-                    name:'玉都老年文艺团玉都老年文艺团玉都老年文艺团玉都老年文艺团玉都老年文艺团玉都老年文艺团',
-                    title:'歌曲合唱《玉都我美丽的家乡》',
-                    index:'46',
-                    cardnum:'527221',
-                    avatar:'https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fattach.bbs.miui.com%2Fforum%2F201311%2F01%2F215828tpmddz2d2bfcz5pk.jpg&refer=http%3A%2F%2Fattach.bbs.miui.com&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=jpeg?sec=1623549721&t=61e51fb424dcd6eb610326db7843f61a',
-                    images:'https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fattach.bbs.miui.com%2Fforum%2F201311%2F01%2F215828tpmddz2d2bfcz5pk.jpg&refer=http%3A%2F%2Fattach.bbs.miui.com&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=jpeg?sec=1623549721&t=61e51fb424dcd6eb610326db7843f61a',
-                    zan:'389',
-                    talk:'253',
-                    time:'2021-01-19'
-                },
-                {
-                    id:5,
-                    name:'玉都老年文艺团玉都老年文艺团玉都老年文艺团玉都老年文艺团玉都老年文艺团玉都老年文艺团',
-                    title:'歌曲合唱《玉都我美丽的家乡》',
-                    index:'46',
-                    cardnum:'527221',
-                    avatar:'https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fattach.bbs.miui.com%2Fforum%2F201311%2F01%2F215828tpmddz2d2bfcz5pk.jpg&refer=http%3A%2F%2Fattach.bbs.miui.com&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=jpeg?sec=1623549721&t=61e51fb424dcd6eb610326db7843f61a',
-                    images:'https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fattach.bbs.miui.com%2Fforum%2F201311%2F01%2F215828tpmddz2d2bfcz5pk.jpg&refer=http%3A%2F%2Fattach.bbs.miui.com&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=jpeg?sec=1623549721&t=61e51fb424dcd6eb610326db7843f61a',
-                    zan:'389',
-                    talk:'253',
-                    time:'2021-01-19'
-                },
-                {
-                    id:6,
-                    name:'玉都老年文艺团玉都老年文艺团玉都老年文艺团玉都老年文艺团玉都老年文艺团玉都老年文艺团',
-                    title:'歌曲合唱《玉都我美丽的家乡》',
-                    index:'46',
-                    cardnum:'527221',
-                    avatar:'https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fattach.bbs.miui.com%2Fforum%2F201311%2F01%2F215828tpmddz2d2bfcz5pk.jpg&refer=http%3A%2F%2Fattach.bbs.miui.com&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=jpeg?sec=1623549721&t=61e51fb424dcd6eb610326db7843f61a',
-                    images:'https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fattach.bbs.miui.com%2Fforum%2F201311%2F01%2F215828tpmddz2d2bfcz5pk.jpg&refer=http%3A%2F%2Fattach.bbs.miui.com&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=jpeg?sec=1623549721&t=61e51fb424dcd6eb610326db7843f61a',
-                    zan:'389',
-                    talk:'253',
-                    time:'2021-01-19'
-                },
-                {
-                    id:7,
-                    name:'玉都老年文艺团玉都老年文艺团玉都老年文艺团玉都老年文艺团玉都老年文艺团玉都老年文艺团',
-                    title:'歌曲合唱《玉都我美丽的家乡》',
-                    index:'46',
-                    cardnum:'527221',
-                    avatar:'https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fattach.bbs.miui.com%2Fforum%2F201311%2F01%2F215828tpmddz2d2bfcz5pk.jpg&refer=http%3A%2F%2Fattach.bbs.miui.com&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=jpeg?sec=1623549721&t=61e51fb424dcd6eb610326db7843f61a',
-                    images:'https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fattach.bbs.miui.com%2Fforum%2F201311%2F01%2F215828tpmddz2d2bfcz5pk.jpg&refer=http%3A%2F%2Fattach.bbs.miui.com&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=jpeg?sec=1623549721&t=61e51fb424dcd6eb610326db7843f61a',
-                    zan:'389',
-                    talk:'253',
-                    time:'2021-01-19'
-                },
-                {
-                    id:8,
-                    name:'玉都老年文艺团玉都老年文艺团玉都老年文艺团玉都老年文艺团玉都老年文艺团玉都老年文艺团',
-                    title:'歌曲合唱《玉都我美丽的家乡》',
-                    index:'46',
-                    cardnum:'527221',
-                    avatar:'https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fattach.bbs.miui.com%2Fforum%2F201311%2F01%2F215828tpmddz2d2bfcz5pk.jpg&refer=http%3A%2F%2Fattach.bbs.miui.com&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=jpeg?sec=1623549721&t=61e51fb424dcd6eb610326db7843f61a',
-                    images:'https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fattach.bbs.miui.com%2Fforum%2F201311%2F01%2F215828tpmddz2d2bfcz5pk.jpg&refer=http%3A%2F%2Fattach.bbs.miui.com&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=jpeg?sec=1623549721&t=61e51fb424dcd6eb610326db7843f61a',
-                    zan:'389',
-                    talk:'253',
-                    time:'2021-01-19'
-                }
-            ]
-            if(this.currentPage == 1){
-                this.activitylist= data;
-            }else{
-                this.activitylist = this.activitylist.concat(data);
-            }
+        onSearch(){
 
-            if(data.length >= this.pageSize){
-                this.loaddata = true;
-                this.loadingtype = 'loading';
-                this.isScroll = true;
-            }
+        },
+        getData:function(obj){
+            let param = new URLSearchParams();
+            param.append('page', this.currentPage);
+            param.append('pageSize', this.pageSize);
+            param.append('keyword', this.search);
+            param.append('event_id',this.activityinfo.id);
+            var _this = this;
+            this.$http.post('/tab:enter_list',param).then((res)=>{
+                if(res.res == 1){
+                    if(this.currentPage == 1){
+                        this.activitylist= [];
+                    }
+                    if(res.data.length > 0){
+                        res.data.filter((item)=>{
+                            item.name = item.team_name;
+                            item.title = item.work_name;
+                            item.index = item.enter_number;
+                            item.avatar = item.avatar;
+                            item.cardnum = item.ticket_num;
+                            item.images = item.image;
+                            item.zan = item.like_num;
+                            item.talk = item.comment_num;
+                            item.time = item.create_time;
+                            _this.activitylist.push(item);
+                        })
+                    }
+                    if(res.data.length >= this.pageSize){
+                        this.loaddata = true;
+                        this.loadingtype = 'loading';
+                        this.isScroll = true;
+                    }else{
+                        this.loaddata = false;
+                        this.loadingtype = 'end';
+                        this.isScroll = false;
+                    }
+
+                }else{
+                    this.errorinfo.show = true;
+                    this.errorinfo.text = res.msg;
+                }
+            })
+
         },
     },
-    created: function () {
+
+    mounted:function () {
+
     },
-    mounted: function () {
-        this.getData();
+    beforeRouteEnter:(to,from,next)=>{
+        if(from.name == 'Home'){
+            next(vm=>{
+                vm.upload = true
+            })
+        }else{
+            next(vm=>{
+                vm.upload = false
+            })
+        }
+
     },
     activated: function () {
-        this.$refs.list.scrollTop = this.scrollTop;
+        this.$store.commit('setTitlebar', {title: this.activityinfo.title});
+        document.title = this.activityinfo.title;
+        if (this.upload){
+            this.getData();
+        }else{
+            this.$refs.list.scrollTop = this.scrollTop;
+        }
     },
     deactivated: function () {
     }
@@ -244,6 +186,9 @@ export default {
 </script>
 
 <style scoped lang="less">
+.van-search{
+    flex: 0 0 auto;
+}
     .activity_info{
         background-color: #ff6050;
         background-image: -moz-linear-gradient(90deg, #ff6050 0%, #dd2b45 100%);
@@ -252,7 +197,13 @@ export default {
         background-image: -o-linear-gradient(90deg, #ff6050 0%, #dd2b45 100%);
         background-image: -ms-linear-gradient(90deg, #ff6050 0%, #dd2b45 100%);
         background-image: linear-gradient(90deg, #ff6050 0%, #dd2b45 100%);
+        position: sticky;
+        top:0;
+        left: 0;
+        right: 0;
+        z-index: 10;
         flex:0 0 auto;
+
         .activity_info_bg{
             border-top-left-radius: 15px;
             border-top-right-radius: 15px;
@@ -393,141 +344,7 @@ export default {
     .activitylistitem{
         background-color: #f1f5f9;
         flex: 1 0 auto;
-        height: 0;
-        overflow-y: auto;
         padding: 0px 15px;
-        .item{
-            background-color: #fff;
-            padding: 15px 15px 0;
-            margin-bottom:15px;
-            .title{
-                display: flex;
-                align-items: center;
-                margin-bottom: 11px;
-                .iteminfo{
-                    flex:1 0 auto;
-                    display: flex;
-                    align-items: center;
-                    .itemheader{
-                        flex:0 0 auto;
-                        width: 45px;
-                        height: 45px;
-                        border-radius: 22.5px;
-                        overflow: hidden;
-                        margin-right: 9px;
-                        img{
-                            display: block;
-                            width: 100%;
-                            height: 100%;
-                        }
-                    }
-                    .itemtext{
-                        flex:1 0 auto;
-                        width: 0;
-                        .number{
-                            display: flex;
-                            align-items: baseline;
-                            font-size: 14px;
-                            .cardnum{
-                                font-family: 'number';
-                                color:#e93d49;
-                                font-size: 25px;
-                                margin-right: 5px;
-                            }
-                        }
-                        .text{
-                            font-size: 14px;
-                            text-overflow: ellipsis;
-                            overflow: hidden;
-                            white-space: nowrap;
-                            word-break: break-all;
-                        }
-                    }
-                }
-                .itemcard{
-                    flex: 0 0 auto;
-                    display: flex;
-                    align-items:baseline;
-                    .icons{
-                        width: 18px;
-                        height: 18px;
-                        font-size: 18px;
-                        color:#e93d49;
-                        margin-right: 5px;
-                        line-height: 18px;
-                    }
-                    .cardnum{
-                        font-family: 'number';
-                        color:#e93d49;
-                        font-size: 25px;
-                        margin-right: 4px;
-                        line-height: 25px;
-                    }
-                    .cardtext{
-                        font-size: 14px;
-                        line-height: 25px;
-                    }
-                }
-            }
-            .item_img{
-                display: block;
-                position: relative;
-                width: 260px;
-                height: 148px;
-                border-radius: 10px;
-                overflow: hidden;
-                img{
-                    width: 100%;
-                    height: 100%;
-                }
-                .item_title{
-                    position: absolute;
-                    bottom:0;
-                    left: 0;
-                    right: 0;
-                    height: 34px;
-                    line-height: 34px;
-                    padding: 0 15px;
-                    padding-top: 20px;
-                    color:#fff;
-                    z-index: 5;
-                    background: rgba(0,0,0,.6);
-                    background: -moz-linear-gradient(0deg,rgba(0,0,0,.8) 0%, rgba(0,0,0,0) 100%);
-                    background: -webkit-linear-gradient(0deg, rgba(0,0,0,.8) 0%,rgba(0,0,0,0) 100%);
-                    background: -o-linear-gradient(0deg,rgba(0,0,0,.8) 0%,rgba(0,0,0,0) 100%);
-                    background: -ms-linear-gradient(0deg, rgba(0,0,0,.8) 0%,rgba(0,0,0,0) 100%);
-                    background: linear-gradient(0deg,rgba(0,0,0,.8) 0%,rgba(0,0,0,0) 100%);
-                }
-            }
-            .item_footer{
-                display: flex;
-                align-items: center;
-                .item_label{
-                    display: flex;
-                    align-items: center;
-                    flex:1 0 auto;
-                    padding: 9px 0;
-                    .box_item{
-                        display: flex;
-                        align-items: center;
-                        margin-right: 15px;
-                        .icons{
-                            margin-right: 5px;
-                        }
-                        .item_text{
-                            font-family: 'number';
-                            color:#e93d49;
-                            font-size: 18px;
-                            margin-right: 4px;
-                            line-height: 25px;
-                        }
-                    }
-                }
-                .item_time{
-                    flex:0 0 auto;
 
-                }
-            }
-        }
     }
 </style>

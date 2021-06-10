@@ -1,23 +1,121 @@
 <template>
-    <div id="app">
-    <router-view v-slot="{ Component }">
-        <keep-alive>
-            <component :is="Component" />
-        </keep-alive>
-    </router-view>
+    <div>
+        <div class="headbar" v-show="titlebar.show" :class="titlebar.titlebarclass">
+            <van-nav-bar
+                :title="titlebar.title"
+                :left-text="titlebar.lefttext"
+                :right-text="titlebar.righttext"
+                :left-arrow="titlebar.leftarrow"
+                @click-left="onClickLeft"
+                @click-right="onClickRight"
+            >
+                <template #left v-if="titlebar.lefthtml">
+                    <div class="leftcontent" v-html="titlebar.lefthtml"></div>
+                </template>
+                <template #title v-if="titlebar.titlehtml">
+                    <div class="titlecontent" v-html="titlebar.titlehtml"></div>
+                </template>
+                <template #right v-if="titlebar.righthtml" >
+                    <div class="rightcontent" v-html="titlebar.righthtml"></div>
+                </template>
+            </van-nav-bar>
+        </div>
+        <router-view v-slot="{ Component }" >
+            <keep-alive>
+                <component :is="Component" ref="child" />
+            </keep-alive>
+        </router-view>
     </div>
+
 </template>
 
 <script>
+import {NavBar} from 'vant'
   export default {
       name: "app",
-      components:{},
+      components:{
+          [NavBar.name]:NavBar
+      },
+      data(){
+          return {
+              titlebar:this.$store.state.titlebar
+          }
+      },
+      created(){
+          // alert(this.$store.state.titlebar.show);
+      },
+      methods:{
+          onClickLeft:function(){
+              try{
+                  var back = this.$refs.child.leftBtnClick();
+                  if(!back){
+                      this.$router.go(-1);
+                  }
+              }catch(err){
+                  this.$router.go(-1);
+              }
+          },
+          onClickRight:function(){
+              try{
+                  this.$refs.child.rightBtnClick();
+              }catch(err){
+
+              }
+          }
+      }
   }
 </script>
+<style scoped lang="less">
+
+.redgradient{
+    background: #ff6050;
+    background: -moz-linear-gradient(90deg, #ff6050 0%, #dd2b45 100%);
+    background: -webkit-gradient(linear, left top, right top, color-stop(0%, #ff6050), color-stop(100%, #dd2b45));
+    background: -webkit-linear-gradient(90deg, #ff6050 0%, #dd2b45 100%);
+    background: -o-linear-gradient(90deg, #ff6050 0%, #dd2b45 100%);
+    background: -ms-linear-gradient(90deg, #ff6050 0%, #dd2b45 100%);
+    background: linear-gradient(90deg, #ff6050 0%, #dd2b45 100%);
+    .van-nav-bar{
+        background-color: transparent;
+    }
+    .van-nav-bar /deep/ .van-icon{
+        color:#fff;
+    }
+    .van-nav-bar /deep/ .van-nav-bar__left{
+        padding: 0 11px;
+    }
+
+    .van-nav-bar /deep/ .van-nav-bar__title{
+        color:#fff;
+    }
+    .van-nav-bar /deep/ .van-nav-bar__arrow{
+        font-size: 24px;
+    }
+    .van-nav-bar /deep/ .van-nav-bar__right{
+        color:#fff;
+    }
+    .van-nav-bar /deep/ .van-nav-bar__text{
+        color:#fff;
+    }
+    .van-nav-bar /deep/ .van-nav-bar__right .icons{
+        font-size: 24px;
+    }
+    .van-nav-bar /deep/ .van-nav-bar__right .rightcontent{
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .van-hairline--bottom{
+        &:after{
+            border-bottom-width: 0;
+        }
+    }
+}
+</style>
 <style lang="less" >
     .content{
         position: absolute;
-        top:0;
+        top:46px;
         left: 0;
         right: 0;
         bottom:0;

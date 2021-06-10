@@ -10,7 +10,9 @@ const routes = [
         name: 'Home',
         component: Home,
         meta: {
-            title: '绽放夕阳',
+            titlebar:{
+                title:'活动列表',
+            },
             keepAlive: true,
         },
     },
@@ -37,7 +39,9 @@ const routes = [
         name: 'activitylist',
         component: activitylist,
         meta: {
-            title: '活动列表',
+            titlebar:{
+                title:'节目列表',
+            },
             keepAlive: true,
         }
     },{
@@ -45,7 +49,9 @@ const routes = [
         name: 'activitydetail',
         component: activitydetail,
         meta: {
-            title: '活动详情',
+            titlebar:{
+                title:'节目详情',
+            },
             keepAlive: false,
         }
     }

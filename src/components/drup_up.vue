@@ -2,7 +2,7 @@
     <div class="drop_up_box" :class="icontype" v-if="isshow" @click="errorfn">
         <div class="drop_up_loading" v-if="showicon"></div>
         <div class="drop_up_icon"  v-if="!showicon">
-            <i class="iconfont endicon icon-roundclosefill"></i>
+            <i class=" endicon elderlyicon-zhongdian"></i>
         </div>
         <div class="drop_up_text">{{loadtext}}</div>
     </div>
@@ -32,7 +32,6 @@ export default {
     },
     watch:{
         loadingtype(newVal){
-            console.log(newVal);
             if(newVal == 'end'){
                 this.icontype = 'end';
                 this.isshow = true;
@@ -92,14 +91,14 @@ export default {
 .drop_up_text {
     display: flex;
     align-items: center;
-    font-size: .7rem;
+    font-size: 12px;
     color: #b3bbbe;
     justify-content: center;
 }
 
 .endicon {
-    font-size: 1rem;
-    margin-right: 0.25rem;
+    font-size: 20px;
+    margin-right: 4px;
     color: #b3bbbe
 }
 .end .iconfont:before {
