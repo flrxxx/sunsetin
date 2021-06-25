@@ -1,6 +1,6 @@
 <template>
     <div class="listloading" :class="type == 'fixed' ? 'fixedloading':'inlineloading'">
-        <van-loading type="spinner" color="#ff6050" ></van-loading>
+        <van-loading color="#ff6050" ></van-loading>
     </div>
 </template>
 
@@ -22,7 +22,7 @@ export default {
     display: flex;
     align-items: center;
     justify-content: center;
-    flex:1 0 100%;
+    flex:1 0 auto;
     background-color: #fff;
     box-sizing: border-box;
     &.fixed{

@@ -6,8 +6,8 @@
             @search="onSearch"
             background="linear-gradient(90deg, #ff6050 0%, #dd2b45 100%)"
         />
-        <div class="activity_info">
-            <div class="activity_info_bg">
+        <div class="activity_info" >
+            <div class="activity_info_bg" :class="loading ? 'isloading':''">
                 <div class="activity_name">{{activityinfo.title}}</div>
                 <div class="activity_infoline">
                     <div class="space_item">
@@ -28,15 +28,16 @@
                 </div>
             </div>
         </div>
-        <div class="activitylistitem" >
+
+        <listloading v-if="loading"></listloading>
+        <div class="activitylistitem" v-else>
             <div v-if="errorinfo.show">
                 <emptydate :Emptytype="type" :Emptytext="text"></emptydate>
             </div>
             <div v-else>
                 <hdlist :activitylist="activitylist"></hdlist>
-                <drup_up :loadingtype="loadingtype" :errorClick="errorClick" />
+                <drup_up :loadingtype="loadingtype" :errorClick="errorClick" v-if="activitylist.length  > 0" />
             </div>
-
         </div>
 
     </div>
@@ -46,18 +47,22 @@
 import drup_up from '@/components/drup_up.vue';
 import emptydate from '@/components/emptydate.vue';
 import hdlist from '@/components/hd_list.vue';
-import {Search} from 'vant';
+import listloading from '@/components/listloading';
+import {Search,Loading} from 'vant';
 export default {
     name: "activitylist",
     components:{
         drup_up,
         hdlist,
         [Search.name]:Search,
-        emptydate
+        [Loading.name]:Loading,
+        emptydate,
+        listloading
     },
     data() {
         return {
             title:'',
+            loading:false,
             loadingtype:'none',//上滑加载暂不启动
             pageSize:10,//每页数据条数
             loaddata:false,
@@ -119,6 +124,7 @@ export default {
             param.append('event_id',this.activityinfo.id);
             var _this = this;
             this.$http.post('/tab:enter_list',param).then((res)=>{
+                this.loading = false;
                 if(res.res == 1){
                     if(this.currentPage == 1){
                         this.activitylist= [];
@@ -162,7 +168,8 @@ export default {
     beforeRouteEnter:(to,from,next)=>{
         if(from.name == 'Home'){
             next(vm=>{
-                vm.upload = true
+                vm.upload = true;
+                vm.loading = true;
             })
         }else{
             next(vm=>{
@@ -339,12 +346,22 @@ export default {
                 border-top-right-radius: 15px;
                 height: 20px;
             }
+            &.isloading:after{
+                background-color: #fff;
+            }
         }
     }
     .activitylistitem{
         background-color: #f1f5f9;
         flex: 1 0 auto;
         padding: 0px 15px;
-
+    }
+    .activityloading{
+        background-color: #f1f5f9;
+        flex:1 0 auto;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
     }
 </style>

@@ -20,12 +20,14 @@
                 </template>
             </van-nav-bar>
         </div>
-        <router-view v-slot="{ Component }" >
+        <router-view v-slot="{ Component }" v-if="$route.meta.keepAlive">
             <keep-alive>
                 <component :is="Component" ref="child" />
             </keep-alive>
         </router-view>
+        <router-view v-if="!$route.meta.keepAlive"></router-view>
     </div>
+
 
 </template>
 

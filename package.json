@@ -19,6 +19,7 @@
     "vuex": "^4.0.0-0"
   },
   "devDependencies": {
+    "@liripeng/vue-audio-player": "^1.2.10",
     "@vue/cli-plugin-babel": "~4.5.0",
     "@vue/cli-plugin-eslint": "~4.5.0",
     "@vue/cli-plugin-router": "^4.5.13",
@@ -32,7 +33,10 @@
     "less": "^4.1.1",
     "less-loader": "^5.0.0",
     "vant": "^3.0.16",
-    "vue-loader-v16": "^16.0.0-beta.5.4"
+    "vue-core-video-player": "^0.2.0",
+    "vue-loader-v16": "^16.0.0-beta.5.4",
+    "vue-mini-player": "^0.2.1",
+    "vue-video-player": "^5.0.2"
   },
   "eslintConfig": {
     "root": true,

@@ -6,6 +6,8 @@ import store from './store'
 import './lib/rem.js';
 import Axios from 'axios';
 import {Icon,Dialog} from 'vant';
+import vueMiniPlayer from 'vue-mini-player'
+import 'vue-mini-player/lib/vue-mini-player.css'
 router.beforeEach((to,from,next)=>{
     // store.setTitlebar(to.meta.titlebar);
     // store.commit('setTitlebar',to.meta.titlebar)
@@ -68,4 +70,5 @@ main.config.globalProperties.$http = $http;
 main.use(Icon);
 main.use(store);
 main.use(router);
+main.use(vueMiniPlayer);
 main.mount('#app');

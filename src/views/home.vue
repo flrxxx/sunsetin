@@ -22,7 +22,7 @@
                 <keep-alive>
                     <component v-bind:is="currentcomponent" :list="activity" :Emptytype="errorinfo.type" :Emptytext="errorinfo.text" :showbtn="true"></component>
                 </keep-alive>
-                <drup_up :loadingtype="loadingtype" :errorClick="errorClick"  />
+                <drup_up :loadingtype="loadingtype" v-if="currentcomponent != 'listloading'" :errorClick="errorClick"  />
             </div>
         </div>
         <footerbar></footerbar>
@@ -198,11 +198,9 @@
             this.list = 'inline'
         },
         activated: function () {
-            console.log(this.scrollTop);
             this.$refs.list.scrollTop = this.scrollTop;
         },
         deactivated: function () {
-            console.log(this.scrollTop);
         }
 
     })

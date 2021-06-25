@@ -1,27 +1,71 @@
 <template>
     <div class="content">
         <div class="detailcontent">
-            <div class="detailboxbg"></div>
-            <div class="detailbox">
-                <div class="title">
-                    <div class="iteminfo">
-                        <div class="itemheader">
-                            <img :src="avatar">
-                        </div>
-                        <div class="itemtext">
-                            <div class="number">
-                                <span class="cardnum">{{index}}</span>号
+            <div class="loading" v-if="loading" >
+                <div class="van-skeleton van-skeleton--animate" >
+                    <div style="display: flex;flex-direction: column; width: 100%">
+                        <div class="line" style="display: flex; align-items: center;justify-content: space-between; width: 100%; margin-top: 20px;">
+                            <div style="display: flex;align-items: center; ">
+                                <div class="van-skeleton__avatar van-skeleton__avatar--round" style="width: 45px;height: 45px;"></div>
+                                <div class="van-skeleton__content" style="width: 100px;">
+                                    <h3 class="van-skeleton__title" style="margin-bottom: 10px; width: 50%"></h3>
+                                    <h3 class="van-skeleton__title" style="width: 100%"></h3>
+                                </div>
                             </div>
-                            <div class="text">{{name}}</div>
+                            <div class="van-skeleton__content" style="width: 80px;">
+                                <h3 class="van-skeleton__title" style="width: 100%"></h3>
+                            </div>
                         </div>
-                    </div>
-                    <div class="itemcard">
-                        <i class="icons elderlyicon-toupiaoicon"></i>
-                        <span class="cardnum">{{cardnum}}</span>
-                        <span class="cardtext">票</span>
+                        <div class="van-skeleton__content" style="width: 100%; margin-top: 20px;">
+                            <h3 class="van-skeleton__title" style="width: 100%; height: 60px"></h3>
+                        </div>
+                        <div style="margin: 0 -15px; height: 15px; background-color: #f1f5f7; margin-top: 20px;"></div>
+                        <div class="van-skeleton__content" style="width: 100%; margin-top: 20px;">
+                            <h3 class="van-skeleton__title" style="width: 100%; height: 180px"></h3>
+                        </div>
+                        <div class="van-skeleton__content" style="width: 100%; margin-top: 20px;">
+                            <h3 class="van-skeleton__title" style="width: 85%; margin-left: 15%"></h3>
+                            <h3 class="van-skeleton__title" style="width: 100%; margin-top: 20px;"></h3>
+                            <h3 class="van-skeleton__title" style="width: 100%; margin-top: 20px;"></h3>
+                            <h3 class="van-skeleton__title" style="width:40%; margin-top: 20px;"></h3>
+                        </div>
+                        <div class="van-skeleton__content" style="width: 100%; margin-top: 20px;">
+                            <h3 class="van-skeleton__title" style="width: 85%; margin-left: 15%"></h3>
+                            <h3 class="van-skeleton__title" style="width: 100%; margin-top: 20px;"></h3>
+                            <h3 class="van-skeleton__title" style="width: 100%; margin-top: 20px;"></h3>
+                            <h3 class="van-skeleton__title" style="width:40%; margin-top: 20px;"></h3>
+                        </div>
                     </div>
                 </div>
-                <div class="item_info">{{introduce}}</div>
+            </div>
+            <div class="scrolldom" v-else>
+            <div class="detailbox">
+                <div class="title">
+                        <div class="iteminfo">
+                            <div class="itemheader">
+                                <img :src="avatar">
+                            </div>
+                            <div class="itemtext">
+                                <div class="number">
+                                    <span class="cardnum">{{index}}</span>号
+                                </div>
+                                <div class="text">{{name}}</div>
+                            </div>
+                        </div>
+                        <div class="itemcard">
+                            <i class="icons elderlyicon-toupiaoicon"></i>
+                            <span class="cardnum">{{cardnum}}</span>
+                            <span class="cardtext">票</span>
+                        </div>
+                    </div>
+                <div class="item_info"><b>表演者姓名：</b>{{introduce}}</div>
+
+                <div class="itemvideo" >
+                    <video controls="controls"  name="media" id="video" style="max-width: 100% !important;width: 100% !important;">
+                        <source :src="videosrc">
+                    </video>
+                </div>
+
                 <div class="item_content" v-html="content"></div>
             </div>
             <div class="whitebox">
@@ -61,15 +105,24 @@
                 </div>
             </div>
         </div>
+        </div>
     </div>
 </template>
 
 <script>
+import { Skeleton } from 'vant';
+import 'video.js/dist/video-js.css';
+import { videoPlayer } from 'vue-video-player';
 export default {
     name: "activityDetails",
+    components:{
+        [Skeleton.name]:Skeleton,
+        videoPlayer
+    },
     data(){
         return {
-            id:1,
+            loading:true,
+            id:this.$route.query.id,
             name:'玉都老年文艺团玉都老年文艺团玉都老年文艺团玉都老年文艺团玉都老年文艺团玉都老年文艺团',
             title:'歌曲合唱《玉都我美丽的家乡》',
             index:'46',
@@ -81,6 +134,7 @@ export default {
             time:'2021-01-19',
             introduce:'表演者名称：胡晓军、宋久明、徐尚宾、朱锦华、郎石林、阎韵喜、罗荣庭、李庆山、韦三奎',
             content:'',
+            videosrc:'',
             issign:0,
             signinfo:[
                 '1、投票时间:2021年4月9日至2021年4月25日下午6点。',
@@ -103,21 +157,77 @@ export default {
                     iszan:1,
                     talkcontent:'不仅是让项羽聊以解忧，更希望使项羽重燃斗志、突围求生。'
                 }
-            ]
+            ],
         }
-    }
+    },
+    created(){
+    },
+    mounted(){
+        if(this.id){
+            let param = new URLSearchParams();
+            param.append('id', this.$route.query.id);
+            this.$http.post('/tab:enter_detail',param).then((res)=>{
+                // this.title = res.data.
+                this.title = res.data.work_name;
+                this.name = res.data.team_name;
+                this.index = res.data.enter_number;
+                this.cardnum = res.data.ticket_num;
+                this.avatar = res.data.avatar;
+                this.zan = res.data.like_num;
+                this.talk = res.data.comment_num;
+                // this.time = res.data.create_time;
+                this.introduce = res.data.detail.join(',');
+                this.content = res.data.work_descrip;
+                this.videosrc = res.data.video_url;
+                console.log(this.videosrc)
+                this.loading = false;
+
+                // name:'玉都老年文艺团玉都老年文艺团玉都老年文艺团玉都老年文艺团玉都老年文艺团玉都老年文艺团',
+                //     title:'歌曲合唱《玉都我美丽的家乡》',
+                //     index:'46',
+                //     cardnum:'527221000',
+                //     avatar:'https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fattach.bbs.miui.com%2Fforum%2F201311%2F01%2F215828tpmddz2d2bfcz5pk.jpg&refer=http%3A%2F%2Fattach.bbs.miui.com&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=jpeg?sec=1623549721&t=61e51fb424dcd6eb610326db7843f61a',
+                //     images:'https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fattach.bbs.miui.com%2Fforum%2F201311%2F01%2F215828tpmddz2d2bfcz5pk.jpg&refer=http%3A%2F%2Fattach.bbs.miui.com&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=jpeg?sec=1623549721&t=61e51fb424dcd6eb610326db7843f61a',
+                //     zan:'389',
+                //     talk:'253',
+                //     time:'2021-01-19',
+                //     introduce:'表演者名称：胡晓军、宋久明、徐尚宾、朱锦华、郎石林、阎韵喜、罗荣庭、李庆山、韦三奎',
+                //     content:'',
+                //     issign:0,
+            })
+
+        }else{
+            this.$router.push({path:'/'});
+        }
+        // this.$http.post()
+    },
 }
 </script>
 
 <style scoped lang="less">
+.content{
+    background: #ff6050;
+    background: -moz-linear-gradient(90deg, #ff6050 0%, #dd2b45 100%);
+    background: -webkit-gradient(linear, left top, right top, color-stop(0%, #ff6050), color-stop(100%, #dd2b45));
+    background: -webkit-linear-gradient(90deg, #ff6050 0%, #dd2b45 100%);
+    background: -o-linear-gradient(90deg, #ff6050 0%, #dd2b45 100%);
+    background: -ms-linear-gradient(90deg, #ff6050 0%, #dd2b45 100%);
+    background: linear-gradient(90deg, #ff6050 0%, #dd2b45 100%);
+}
 .detailcontent{
     position: relative;
+    flex:1 0 auto;
+    overflow: hidden;
+    border-top-left-radius:10px;
+    border-top-right-radius: 10px;
+    height: 0;
+    background-color: #fff;
+    .scrolldom{
+        height: 100%;
+        overflow-y: auto;
+    }
     .detailbox{
-        border-top-left-radius:10px;
-        border-top-right-radius: 10px;
-        background-color: #fff;
-        padding: 11px 11px 0;
-        margin-bottom:11px;
+        padding: 11px 11px 11px;
         position: relative;
         z-index: 10;
         .title{
@@ -164,6 +274,7 @@ export default {
                     }
                 }
             }
+
             .itemcard{
                 flex: 0 0 auto;
                 display: flex;
@@ -189,12 +300,32 @@ export default {
                 }
             }
         }
+        .itemvideo{
+            margin-bottom: 11px;
+            background: #000;
+            #video{
+                width: 320px;
+                max-width: 100%;
+                max-height: 240px;
+            }
+        }
         .item_info{
             background-color: #f1f5f9;
             color:#111;
             line-height: 20px;
             padding: 11px;
             font-size: 12px;
+            margin-bottom: 11px;
+        }
+        .item_content{
+            width: 100%;
+            font-size: 16px;
+            line-height: 24px;
+            /deep/ img{
+                max-width: 100% !important;
+                display: block;
+                margin: 11px auto;
+            }
         }
     }
     .whitebox{
@@ -303,13 +434,13 @@ export default {
         }
     }
     .detailboxbg{
-        background: #d73154;
-        background: -moz-linear-gradient(90deg, #d73154 0%, #ff6050 100%);
-        background: -webkit-gradient(linear, left top, right top, color-stop(0%, #d73154), color-stop(100%, #ff6050));
-        background: -webkit-linear-gradient(90deg, #d73154 0%, #ff6050 100%);
-        background: -o-linear-gradient(90deg, #d73154 0%, #ff6050 100%);
-        background: -ms-linear-gradient(90deg, #d73154 0%, #ff6050 100%);
-        background: linear-gradient(90deg, #d73154 0%, #ff6050 100%);
+        background: #ff6050;
+        background: -moz-linear-gradient(90deg, #ff6050 0%, #dd2b45 100%);
+        background: -webkit-gradient(linear, left top, right top, color-stop(0%, #ff6050), color-stop(100%, #dd2b45));
+        background: -webkit-linear-gradient(90deg, #ff6050 0%, #dd2b45 100%);
+        background: -o-linear-gradient(90deg, #ff6050 0%, #dd2b45 100%);
+        background: -ms-linear-gradient(90deg, #ff6050 0%, #dd2b45 100%);
+        background: linear-gradient(90deg, #ff6050 0%, #dd2b45 100%);
         position: absolute;
         z-index: 1;
         height: 30px;

@@ -18,11 +18,14 @@
                 </div>
                 <div class="itemcard">
                     <i class="icons elderlyicon-toupiaoicon"></i>
-                    <span class="cardnum">{{item.cardnum}}</span>
-                    <span class="cardtext">票</span>
+                    <div class="cardnumbox">
+                        <span class="cardnum">{{item.cardnum}}</span>
+                        <span class="cardtext">票</span>
+                    </div>
+
                 </div>
             </div>
-            <router-link custom :to="{path:'/activitydetail'}" v-slot="{ navigate}">
+            <router-link custom :to="{path:'/activitydetail',query:{id:item.id}}" v-slot="{ navigate}">
                 <div class="item_img" @click="navigate">
                     <div class="item_title">{{item.title}}</div>
                     <img :src="item.images">
@@ -112,7 +115,7 @@ export default {
         .itemcard{
             flex: 0 0 auto;
             display: flex;
-            align-items:baseline;
+            align-items:center;
             .icons{
                 width: 18px;
                 height: 18px;
@@ -120,17 +123,23 @@ export default {
                 color:#e93d49;
                 margin-right: 5px;
                 line-height: 18px;
+                flex:0 0 auto;
             }
-            .cardnum{
-                font-family: 'number';
-                color:#e93d49;
-                font-size: 25px;
-                margin-right: 4px;
-                line-height: 25px;
-            }
-            .cardtext{
-                font-size: 14px;
-                line-height: 25px;
+            .cardnumbox{
+                flex:1 0 auto;
+                display: flex;
+                align-items: baseline;
+                .cardnum{
+                    font-family: 'number';
+                    color:#e93d49;
+                    font-size: 25px;
+                    margin-right: 4px;
+                    line-height: 26px;
+                }
+                .cardtext{
+                    font-size: 14px;
+                    line-height: 15px;
+                }
             }
         }
     }

@@ -4,6 +4,7 @@ import signup from '../views/signup.vue'
 import my from '../views/my.vue'
 import activitylist from '../views/activitylist'
 import activitydetail from '../views/activityDetails'
+import testvideo from '../views/testvideo'
 const routes = [
     {
         path: '/',
@@ -48,6 +49,17 @@ const routes = [
         path: '/activitydetail',
         name: 'activitydetail',
         component: activitydetail,
+        meta: {
+            titlebar:{
+                title:'节目详情',
+            },
+            keepAlive: false,
+        }
+    },
+    {
+        path: '/testvideo',
+        name: 'testvideo',
+        component: testvideo,
         meta: {
             titlebar:{
                 title:'节目详情',
