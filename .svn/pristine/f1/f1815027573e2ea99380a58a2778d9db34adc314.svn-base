@@ -1,0 +1,678 @@
+<template>
+    <div class="content">
+        <div class="detailcontent">
+            <div class="loading" v-if="loading" >
+                <div class="van-skeleton van-skeleton--animate" >
+                    <div style="display: flex;flex-direction: column; width: 100%">
+                        <div class="line" style="display: flex; align-items: center;justify-content: space-between; width: 100%; margin-top: 20px;">
+                            <div style="display: flex;align-items: center; ">
+                                <div class="van-skeleton__avatar van-skeleton__avatar--round" style="width: 45px;height: 45px;"></div>
+                                <div class="van-skeleton__content" style="width: 100px;">
+                                    <h3 class="van-skeleton__title" style="margin-bottom: 10px; width: 50%"></h3>
+                                    <h3 class="van-skeleton__title" style="width: 100%"></h3>
+                                </div>
+                            </div>
+                            <div class="van-skeleton__content" style="width: 80px;">
+                                <h3 class="van-skeleton__title" style="width: 100%"></h3>
+                            </div>
+                        </div>
+                        <div class="van-skeleton__content" style="width: 100%; margin-top: 20px;">
+                            <h3 class="van-skeleton__title" style="width: 100%; height: 60px"></h3>
+                        </div>
+                        <div style="margin: 0 -15px; height: 15px; background-color: #f1f5f7; margin-top: 20px;"></div>
+                        <div class="van-skeleton__content" style="width: 100%; margin-top: 20px;">
+                            <h3 class="van-skeleton__title" style="width: 100%; height: 180px"></h3>
+                        </div>
+                        <div class="van-skeleton__content" style="width: 100%; margin-top: 20px;">
+                            <h3 class="van-skeleton__title" style="width: 85%; margin-left: 15%"></h3>
+                            <h3 class="van-skeleton__title" style="width: 100%; margin-top: 20px;"></h3>
+                            <h3 class="van-skeleton__title" style="width: 100%; margin-top: 20px;"></h3>
+                            <h3 class="van-skeleton__title" style="width:40%; margin-top: 20px;"></h3>
+                        </div>
+                        <div class="van-skeleton__content" style="width: 100%; margin-top: 20px;">
+                            <h3 class="van-skeleton__title" style="width: 85%; margin-left: 15%"></h3>
+                            <h3 class="van-skeleton__title" style="width: 100%; margin-top: 20px;"></h3>
+                            <h3 class="van-skeleton__title" style="width: 100%; margin-top: 20px;"></h3>
+                            <h3 class="van-skeleton__title" style="width:40%; margin-top: 20px;"></h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="scrolldom" v-else ref="scrolldom">
+                <div class="detailbox">
+                    <div class="title">
+                            <div class="iteminfo">
+                                <div class="itemheader">
+                                    <img :src="avatar">
+                                </div>
+                                <div class="itemtext">
+                                    <div class="number">
+                                        <span class="cardnum">{{index}}</span>号
+                                    </div>
+                                    <div class="text">{{name}}</div>
+                                </div>
+                            </div>
+                            <div class="itemcard">
+                                <i class="icons elderlyicon-toupiaoicon"></i>
+                                <span class="cardnum">{{cardnum}}</span>
+                                <span class="cardtext">票</span>
+                            </div>
+                        </div>
+                    <div class="item_info"><b>表演者姓名：</b>{{introduce}}</div>
+
+                    <div class="itemvideo" >
+                        <video controls="controls"  name="media" id="video" style="max-width: 100% !important;width: 100% !important;">
+                            <source :src="videosrc">
+                        </video>
+                    </div>
+
+                    <div class="item_content" v-html="content"></div>
+                </div>
+                <div class="whitebox">
+                    <div class="tpbox" :class="issign == 0 ? 'unsign':'hassign'" @click="signactivity">
+                        <div class="cardnum">{{cardnum}}</div>
+                        <div class="cardtext" v-if="issign != 0">已投票</div>
+                        <div class="cardtext" v-else>投一票</div>
+                    </div>
+                    <div class="iconstitle">
+                        <i class="icons elderlyicon-toupiaoicon"></i>
+                        <span>投票规则</span>
+                    </div>
+                    <ul class="signinfomation">
+                        <li v-for="item in signinfo">{{item}}</li>
+                    </ul>
+                </div>
+                <div class="whitebox" ref="talklist">
+                    <div class="iconstitle">
+                        <i class="icons elderlyicon-pinglun"></i>
+                        <span>评论</span>
+                    </div>
+                    <div class="talklist" >
+                        <div class="talkitem" v-for="item in talkmember" :key="item.id">
+                            <div class="talkitem_header">
+                                <div class="talkuser">
+                                    <img :src="item.avatar">
+                                </div>
+                                <div class="talkusername">{{item.name}}</div>
+                                <div class="talkuserzan">
+                                    <i class="icons" :class="item.iszan == 1 ? 'elderlyicon-dianzaning' : 'elderlyicon-dianzan'"></i>
+                                    {{item.zan}}
+                                </div>
+                            </div>
+                            <div class="talkcontent">{{item.talkcontent}}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="footbar">
+            <div class="writemessage">
+                <i class="elderlyicon-pinglun1"></i>
+                写评论
+            </div>
+            <div class="functionicon" @click="gotalklist">
+                <i class="elderlyicon-pinglunicon"></i>
+            </div>
+            <div class="functionicon" @click="likeit">
+                <i class="elderlyicon-dianzan" :class="isdianzan"></i>
+                <span>{{zannumber}}</span>
+                <div class="numberchange" :class="isdianzan == 'active' && isclick ? 'add' :''" >{{ isdianzan == 'active' ? '+':'' }}1</div>
+                <div class="numberchange" :class="isdianzan == '' && isclick ? 'sub' :''" >{{ isdianzan == '' ? '-':'' }}1</div>
+
+            </div>
+            <div class="functionicon" @click="shoucang">
+                <i class="elderlyicon-shoucang" :class="isshoucang"></i>
+            </div>
+            <div class="functionicon">
+                <i class="elderlyicon-fenxiang"></i>
+            </div>
+        </div>
+    </div>
+</template>
+
+<script>
+import { Skeleton,Toast } from 'vant';
+import 'video.js/dist/video-js.css';
+import { videoPlayer } from 'vue-video-player';
+export default {
+    name: "activityDetails",
+    components:{
+        [Skeleton.name]:Skeleton,
+        videoPlayer
+    },
+    data(){
+        return {
+            page:1,
+            pageSize:10,
+            loading:true,
+            id:this.$route.query.id,
+            name:'',
+            title:'',
+            index:'',
+            cardnum:'',
+            avatar:'',
+            images:'',
+            isdianzan:'',
+            isshoucang:'',
+            zan:'',
+            talk:'',
+            time:'',
+            introduce:'',
+            content:'',
+            videosrc:'',
+            issign:0,
+            signinfo:[
+                '1、投票时间:2021年4月9日至2021年4月25日下午6点。',
+                '2、投票方法:网友选中候选人,直接投票。',
+                '3、投票次数限制:每天每用户限投1票。'
+            ],
+            talkmember:[
+                {
+                    id:1,
+                    avatar:'https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fattach.bbs.miui.com%2Fforum%2F201311%2F01%2F215828tpmddz2d2bfcz5pk.jpg&refer=http%3A%2F%2Fattach.bbs.miui.com&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=jpeg?sec=1623549721&t=61e51fb424dcd6eb610326db7843f61a',
+                    name:'虞姬的剑舞',
+                    zan:56,
+                    iszan:0,
+                    talkcontent:'不仅是让项羽聊以解忧，更希望使项羽重燃斗志、突围求生。'
+                },{
+                    id:2,
+                    avatar:'https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fattach.bbs.miui.com%2Fforum%2F201311%2F01%2F215828tpmddz2d2bfcz5pk.jpg&refer=http%3A%2F%2Fattach.bbs.miui.com&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=jpeg?sec=1623549721&t=61e51fb424dcd6eb610326db7843f61a',
+                    name:'虞姬的剑舞',
+                    zan:56,
+                    iszan:1,
+                    talkcontent:'不仅是让项羽聊以解忧，更希望使项羽重燃斗志、突围求生。'
+                }
+            ],
+            isdianzaning : false,
+            isclick :false,
+            isshoucanging :false,
+        }
+    },
+    created(){
+
+    },
+    computed: {
+        zannumber() {
+            if(this.zan >= 10000){
+                return (this.zan / 10000).toFixed(1).indexOf('.0') > 0 ?  parseInt(this.zan / 10000) + '万'  : (this.zan / 10000).toFixed(1) + '万';
+            }else{
+                return this.zan;
+            }
+        }
+    },
+    mounted(){
+
+    },
+    methods:{
+        gotalklist(){
+           this.$refs.scrolldom.scrollTop = this.$refs.talklist.offsetTop
+        },
+        likeit(){
+            if( !this.isdianzaning ){
+                let param = new URLSearchParams();
+                param.append('id',this.id);
+                this.isdianzaning = true;
+                this.$http.post('/tab:add_like',param).then((res)=>{
+                    this.isdianzaning = false;
+                    this.isclick = true;
+                    if(res.res == 1){
+                        if(this.isdianzan == 'active'){
+                            this.zan = this.zan - 1;
+                            this.isdianzan = '';
+                        }else{
+                            this.zan = this.zan + 1;
+                            this.isdianzan = 'active';
+                        }
+                    }
+                })
+            }
+        },
+        shoucang(){
+            if( !this.isdianzaning ){
+                this.isshoucanging = true;
+                let param = new URLSearchParams();
+                param.append('id',this.id);
+                this.$http.post('/tab:add_collection',param).then((res)=>{
+                    this.isdianzaning = false;
+                    if(res.res == 1){
+                        if(this.isshoucang == 'active'){
+                            this.isshoucang = '';
+                        }else{
+                            Toast.success({
+                                message: '已收藏',
+                            });
+                            this.isshoucang = 'active';
+                        }
+                    }
+                })
+            }
+        },
+        signactivity(){
+            if(this.issign == 0){
+                let param = new URLSearchParams();
+                param.append('id',this.id);
+                this.$http.post('/tab:add_ticket',param).then((res)=>{
+                    if(res.res ==1){
+                        this.issign = 1;
+                    }
+                })
+            }else{
+                Toast.fail('今日已投票');
+            }
+        },
+        get_comment(){
+            let param = new URLSearchParams();
+            param.append('page',this.page);
+            param.append('pageSize',this.pageSize);
+            param.append('id',this.id);
+            this.$http.post('/get_comment').then((res)=>{
+
+            })
+        }
+    },
+    activated: function () {
+        this.isclick = false;
+        this.loading = true;
+        if(this.id){
+            let param = new URLSearchParams();
+            param.append('id', this.id);
+            this.$http.post('/tab:enter_detail',param).then((res)=>{
+                // this.title = res.data.
+                this.title = res.data.work_name;
+                this.name = res.data.team_name;
+                this.index = res.data.enter_number;
+                this.cardnum = res.data.ticket_num;
+                this.avatar = res.data.avatar;
+                if(res.data.like_num){
+                    res.data.like_num = parseInt(res.data.like_num);
+                    this.zan = res.data.like_num;
+                }else{
+                    this.zan = 0;
+                }
+                if(res.data.is_like_num == '0'){
+                    this.isdianzan = ''
+                }else{
+                    this.isdianzan = 'active'
+                }
+                if(res.data.is_collection_num == '0'){
+                    this.isshoucang = ''
+                }else{
+                    this.isshoucang = 'active'
+                }
+                if(res.data.is_ticket_num == '0'){
+                    this.issign = 0
+                }else{
+                    this.issign = 1
+                }
+                this.talk = res.data.comment_num;
+                // this.time = res.data.create_time;
+                this.introduce = res.data.detail.join(',');
+                this.content = res.data.work_descrip;
+                this.videosrc = res.data.video_url;
+                this.loading = false;
+
+            })
+            //获取评论
+            this.get_comment();
+
+        }else{
+            this.$router.push({path:'/'});
+        }
+    }
+}
+</script>
+
+<style scoped lang="less">
+
+.content{
+    background: #ff6050;
+    background: -moz-linear-gradient(90deg, #ff6050 0%, #dd2b45 100%);
+    background: -webkit-gradient(linear, left top, right top, color-stop(0%, #ff6050), color-stop(100%, #dd2b45));
+    background: -webkit-linear-gradient(90deg, #ff6050 0%, #dd2b45 100%);
+    background: -o-linear-gradient(90deg, #ff6050 0%, #dd2b45 100%);
+    background: -ms-linear-gradient(90deg, #ff6050 0%, #dd2b45 100%);
+    background: linear-gradient(90deg, #ff6050 0%, #dd2b45 100%);
+}
+.detailcontent{
+    position: relative;
+    flex:1 0 auto;
+    overflow: hidden;
+    border-top-left-radius:10px;
+    border-top-right-radius: 10px;
+    height: 0;
+    background-color: #fff;
+    margin-bottom: 50px;
+    .scrolldom{
+        height: 100%;
+        overflow-y: auto;
+    }
+    .detailbox{
+        padding: 11px 11px 11px;
+        position: relative;
+        z-index: 10;
+        .title{
+            display: flex;
+            align-items: center;
+            margin-bottom: 11px;
+            .iteminfo{
+                flex:1 0 auto;
+                display: flex;
+                align-items: center;
+                .itemheader{
+                    flex:0 0 auto;
+                    width: 45px;
+                    height: 45px;
+                    border-radius: 22.5px;
+                    overflow: hidden;
+                    margin-right: 9px;
+                    img{
+                        display: block;
+                        width: 100%;
+                        height: 100%;
+                    }
+                }
+                .itemtext{
+                    flex:1 0 auto;
+                    width: 0;
+                    .number{
+                        display: flex;
+                        align-items: baseline;
+                        font-size: 14px;
+                        .cardnum{
+                            font-family: 'number';
+                            color:#e93d49;
+                            font-size: 25px;
+                            margin-right: 5px;
+                        }
+                    }
+                    .text{
+                        font-size: 14px;
+                        text-overflow: ellipsis;
+                        overflow: hidden;
+                        white-space: nowrap;
+                        word-break: break-all;
+                    }
+                }
+            }
+
+            .itemcard{
+                flex: 0 0 auto;
+                display: flex;
+                align-items:baseline;
+                .icons{
+                    width: 18px;
+                    height: 18px;
+                    font-size: 18px;
+                    color:#e93d49;
+                    margin-right: 5px;
+                    line-height: 18px;
+                }
+                .cardnum{
+                    font-family: 'number';
+                    color:#e93d49;
+                    font-size: 25px;
+                    margin-right: 4px;
+                    line-height: normal;
+                }
+                .cardtext{
+                    font-size: 14px;
+                    line-height: normal;
+                }
+            }
+        }
+        .itemvideo{
+            margin-bottom: 11px;
+            background: #000;
+            #video{
+                width: 320px;
+                max-width: 100%;
+                max-height: 240px;
+            }
+        }
+        .item_info{
+            background-color: #f1f5f9;
+            color:#111;
+            line-height: 20px;
+            padding: 11px;
+            font-size: 12px;
+            margin-bottom: 11px;
+        }
+        .item_content{
+            width: 100%;
+            font-size: 16px;
+            line-height: 24px;
+            /deep/ img{
+                max-width: 100% !important;
+                display: block;
+                margin: 11px auto;
+            }
+        }
+    }
+    .whitebox{
+        border-top:10px solid #f1f5f7;
+        background-color: #fff;
+        padding: 11px;
+        .tpbox{
+            margin:6px auto;
+            width: 70px;
+            height: 70px;
+            border-radius: 35px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: #fff;
+            border:1px solid #ddd;
+            color:#000;
+            &.hassign{
+                background: #d73154;
+                background: -moz-linear-gradient(-90deg, #d73154 0%, #ff6050 100%);
+                background: -webkit-gradient(linear, right top, left top, color-stop(0%, #d73154), color-stop(100%, #ff6050));
+                background: -webkit-linear-gradient(-90deg, #d73154 0%, #ff6050 100%);
+                background: -o-linear-gradient(-90deg, #d73154 0%, #ff6050 100%);
+                background: -ms-linear-gradient(-90deg, #d73154 0%, #ff6050 100%);
+                background: linear-gradient(-90deg, #d73154 0%, #ff6050 100%);
+                .cardnum{
+                    font-family: 'number';
+                    color:#fff;
+                    font-size: 20px;
+                }
+                .cardtext{
+                    color:#fff;
+                    font-size: 14px;
+                }
+            }
+            .cardnum{
+                font-family: 'number';
+                color:#000;
+                font-size: 20px;
+            }
+            .cardtext{
+                color:#000;
+                font-size: 14px;
+            }
+
+        }
+        .iconstitle{
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            .icons{
+                color:#d73154;
+                font-size: 18px;
+                margin-right: 5px;
+            }
+            span{
+                font-size: 14px;
+                font-weight: bold;
+            }
+        }
+        .signinfomation{
+            li{
+                font-size: 12px;
+                color:#666;
+                margin-bottom: 11px;
+            }
+        }
+        .talklist{
+            .talkitem{
+                padding-top: 8px;
+                margin-bottom: 10px;
+                .talkitem_header{
+                    display: flex;
+                    align-items: flex-start;
+                    margin-bottom:7px;
+                    .talkuser{
+                        flex: 0 0 auto;
+                        width: 28px;
+                        height: 28px;
+                        line-height: 28px;
+                        border-radius: 14px;
+                        overflow: hidden;
+                        margin-right: 10px;
+                        img{
+                            width: 100%;
+                            height:100%;
+                        }
+                    }
+                    .talkusername{
+                        flex:1 0 auto;
+                        height: 28px;
+                        line-height: 28px;
+                        margin-right: 10px;
+                        width: 0;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                        white-space: nowrap;
+                        font-size: 12px;
+                    }
+                    .talkuserzan{
+                        display: flex;
+                        align-items: center;
+                        height: 28px;
+
+                        .icons{
+                            font-size: 16px;
+                            margin-right: 5px;
+                            &.elderlyicon-dianzaning{
+                                color:#e93d49;
+                            }
+                        }
+                    }
+                }
+                .talkcontent{
+                    font-size: 12px;
+                    color:#111;
+                    padding-left: 38px;
+                }
+            }
+        }
+    }
+    .detailboxbg{
+        background: #ff6050;
+        background: -moz-linear-gradient(90deg, #ff6050 0%, #dd2b45 100%);
+        background: -webkit-gradient(linear, left top, right top, color-stop(0%, #ff6050), color-stop(100%, #dd2b45));
+        background: -webkit-linear-gradient(90deg, #ff6050 0%, #dd2b45 100%);
+        background: -o-linear-gradient(90deg, #ff6050 0%, #dd2b45 100%);
+        background: -ms-linear-gradient(90deg, #ff6050 0%, #dd2b45 100%);
+        background: linear-gradient(90deg, #ff6050 0%, #dd2b45 100%);
+        position: absolute;
+        z-index: 1;
+        height: 30px;
+        left: 0;
+        right: 0;
+    }
+}
+.footbar{
+    height:50px;
+    flex: 0 0 auto;
+    background-color: #fff;
+    border-top:1px solid #e0e6ed;
+    padding: 0 0px 0 11px;
+    display: flex;
+    align-items: center;
+    position: absolute;
+    bottom:0;
+    left: 0;
+    right: 0;
+    z-index: 10;
+    .writemessage{
+        flex:1 0 auto;
+        height: 32px;
+        border-radius:16px;
+        background-color: #f1f5f7;
+        display: flex;
+        align-items: center;
+        padding-left: 10px;
+        i{
+            margin-right: 5px;
+        }
+    }
+    .functionicon{
+        flex: 0 0 auto;
+        height: 50px;
+        padding:0 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        i{
+            font-size: 20px;
+            &.elderlyicon-dianzan.active{
+                &:before{
+                    content:'\e7f2'
+                }
+                color:#d73154;
+            }
+            &.elderlyicon-shoucang.active{
+                &:before{
+                    content:'\e808'
+                }
+                color: #E9B909;
+            }
+        }
+        span{
+            margin-left: 5px;
+            font-size: 16px;
+        }
+
+    }
+}
+
+.numberchange{
+    font-size: 16px;
+    position: absolute;
+    right: 8px;
+    opacity: 0;
+
+    &.add{
+        transform: translateY(0);
+        color:#d73154;
+        animation: addnumber 1s;
+    }
+    &.sub{
+        transform: translateY(-40px);
+        color:#0bb20c;
+        animation: addnumber 1s;
+    }
+}
+@keyframes addnumber {
+    0%{
+        transform: translateY(0);
+        opacity: 0;
+    }
+    40%{
+        transform: translateY(-20px);
+        opacity: 1;
+    }
+    60%{
+        transform: translateY(-20px);
+        opacity: 1;
+    }
+    100%{
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+}
+
+</style>

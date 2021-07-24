@@ -70,6 +70,7 @@ export default {
             isScroll :false,
             scrollTop:0,
             activitylist:[],
+            gogo:0,
             search:'',
             upload:false,
             errorinfo:{
@@ -140,6 +141,8 @@ export default {
                             item.zan = item.like_num;
                             item.talk = item.comment_num;
                             item.time = item.create_time;
+                            item.isdianzaning = false;
+                            item.talklike = false;
                             _this.activitylist.push(item);
                         })
                     }
@@ -168,11 +171,13 @@ export default {
     beforeRouteEnter:(to,from,next)=>{
         if(from.name == 'Home'){
             next(vm=>{
+                vm.$data.gogo ++;
                 vm.upload = true;
                 vm.loading = true;
             })
         }else{
             next(vm=>{
+                console.log(vm)
                 vm.upload = false
             })
         }
@@ -363,5 +368,8 @@ export default {
         flex-direction: column;
         align-items: center;
         justify-content: center;
+    }
+    .emptybox{
+        background-color: #fff;
     }
 </style>

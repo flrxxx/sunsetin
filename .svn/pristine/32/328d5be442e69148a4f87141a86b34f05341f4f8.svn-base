@@ -1,0 +1,7 @@
+const unbaseUrl = ['/ajax_sunsetview'];
+const unErrorTip = ['/ajax_sunsetview'];
+
+export default {
+    unbaseUrl,
+    unErrorTip
+}

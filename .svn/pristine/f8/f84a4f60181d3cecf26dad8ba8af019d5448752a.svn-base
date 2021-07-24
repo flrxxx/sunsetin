@@ -1,0 +1,63 @@
+<template>
+    <div class="page">
+        <div class="fullloading">
+            <div  class="van-skeleton van-skeleton--animate">
+                <div  class="van-skeleton__content">
+                    <h3  class="van-skeleton__row" style="margin-top: 15px; width: 100%"></h3>
+                    <h3  class="van-skeleton__row" style=" width: 60%"></h3>
+                    <div  class="van-skeleton__row" style="height: 160px"></div>
+                    <div  class="van-skeleton__row" style="width: 30%; "></div>
+                    <div  class="van-skeleton__row" style="width: 100%; "></div>
+                    <div  class="van-skeleton__row" style="width: 100%;"></div>
+                    <div  class="van-skeleton__row" style="width: 100%;"></div>
+                    <div  class="van-skeleton__row" style="width: 60%; "></div>
+                    <div  class="van-skeleton__row" style="width: 30%; "></div>
+                    <div  class="van-skeleton__row" style="width: 100%; "></div>
+                    <div  class="van-skeleton__row" style="width: 100%;"></div>
+                    <div  class="van-skeleton__row" style="width: 100%;"></div>
+                    <div  class="van-skeleton__row" style="width: 60%; "></div>
+                    <div  class="van-skeleton__row" style="width: 30%; "></div>
+                    <div  class="van-skeleton__row" style="width: 100%; "></div>
+                    <div  class="van-skeleton__row" style="width: 100%;"></div>
+                    <div  class="van-skeleton__row" style="width: 100%;"></div>
+                    <div  class="van-skeleton__row" style="width: 60%; "></div>
+                </div>
+            </div>
+        </div>
+        <div class="activity_content">
+            <div class="activity_title"></div>
+        </div>
+    </div>
+</template>
+
+<script>
+import { Skeleton  } from 'vant';
+export default {
+    name: "activity_detail",
+    components:{
+        [Skeleton.name]:Skeleton,
+    },
+    data(){
+        return {
+            id:this.$route.query.id
+        }
+    },
+    created(){
+        if(this.id){
+            let param = new URLSearchParams();
+            param.append('id', this.id);
+            this.$http.post('/tab:add_like',param).then((data)=>{
+                if(data.res == 1){
+
+                }
+                console.log(data);
+            })
+        }
+
+    }
+}
+</script>
+
+<style scoped>
+
+</style>

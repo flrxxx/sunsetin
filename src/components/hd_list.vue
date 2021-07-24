@@ -28,14 +28,22 @@
             <router-link custom :to="{path:'/activitydetail',query:{id:item.id}}" v-slot="{ navigate}">
                 <div class="item_img" @click="navigate">
                     <div class="item_title">{{item.title}}</div>
-                    <img :src="item.images">
+<!--                    <img :src="item.images">-->
+                    <van-image :src="item.images" fit="contain">
+                        <template v-slot:error><van-icon name="photo-fail" /></template>
+                        <template v-slot:loading>
+                            <van-loading type="spinner" size="20" />
+                        </template>
+                    </van-image>
                 </div>
             </router-link>
             <div class="item_footer">
                 <div class="item_label">
-                    <div class="box_item">
-                        <i class="icons elderlyicon-dianzan"></i>
+                    <div class="box_item" @click="dianzan(item)">
+                        <i class="icons elderlyicon-dianzan" :class="item.is_like_num == '1' ? 'active' : ''"></i>
                         <div class="item_text">{{item.zan}}</div>
+                        <div class="numberchange" :class="item.is_like_num != '0' && item.talkclick && talkclick? 'add' :''" >{{ item.is_like_num != '0' ? '+':'' }}1</div>
+                        <div class="numberchange" :class="item.is_like_num == '0' && item.talkclick && talkclick? 'sub' :''" >{{ item.is_like_num == '0' ? '-':'' }}1</div>
                     </div>
                     <div class="box_item">
                         <i class="icons elderlyicon-pinglunicon"></i>
@@ -54,12 +62,52 @@
 
 <script>
 import emptydate from '@/components/emptydate.vue';
+import {Dialog,Loading, Skeleton, Lazyload, Image as VanImage} from 'vant';
 export default {
     name: "activitylist",
     props:['activitylist'],
     components: {
-        emptydate
+        emptydate,
+        [Loading.name]:Loading,
+        [Lazyload.name]:Lazyload,
+        [VanImage.name]:VanImage,
+
     },
+    data(){
+        return {
+            isclick:false,
+            talkclick:false
+        }
+    },
+    methods:{
+        dianzan(item){
+            if(!item.isdianzaning){
+
+                item.isdianzaning = true;
+                let param = new URLSearchParams();
+                param.append('id',item.id);
+                this.$http.post('/tab:add_like',param).then((res)=>{
+                    this.talkclick = true;
+                    item.talkclick = true;
+                    item.isdianzaning = false;
+                    if(res.res == 1){
+                        if(item.is_like_num == '0'){
+                            item.is_like_num = 1;
+                            item.zan = parseInt( item.zan )+ 1;
+                        }else{
+                            item.is_like_num = 0;
+                            item.zan = parseInt( item.zan )- 1;
+                        }
+                    }
+                })
+            }else{
+                Dialog.alert({message:'正在操作中，请勿重复点击'})
+            }
+        }
+    },
+    activated: function () {
+        this.talkclick = false;
+    }
 }
 </script>
 
@@ -154,6 +202,20 @@ export default {
             width: 100%;
             height: 100%;
         }
+        /deep/ .van-image{
+            position: absolute;
+            top:0;
+            left: 0;
+            right: 0;
+            bottom:0;
+            border-radius: 10px 10px 0 0;
+            width: 100%;
+            overflow: hidden;
+        }
+        /deep/ .van-icon{
+            font-size: 32px;
+            color:#dcdee0;
+        }
         .item_title{
             position: absolute;
             bottom:0;
@@ -185,8 +247,13 @@ export default {
                 display: flex;
                 align-items: center;
                 margin-right: 15px;
+                position: relative;
                 .icons{
                     margin-right: 5px;
+                    &.elderlyicon-dianzan.active:before{
+                        content:'\e7f2';
+                        color:#d73154;
+                    }
                 }
                 .item_text{
                     font-family: 'number';
@@ -210,4 +277,40 @@ export default {
     flex:1 0 auto;
     background-color: #fff;
 }
+.numberchange{
+    font-size: 16px;
+    position: absolute;
+    right: 4px;
+    opacity: 0;
+
+    &.add{
+        transform: translateY(0);
+        color:#d73154;
+        animation: addnumber 1s;
+    }
+    &.sub{
+        transform: translateY(-40px);
+        color:#0bb20c;
+        animation: addnumber 1s;
+    }
+}
+@keyframes addnumber {
+    0%{
+        transform: translateY(0);
+        opacity: 0;
+    }
+    40%{
+        transform: translateY(-20px);
+        opacity: 1;
+    }
+    60%{
+        transform: translateY(-20px);
+        opacity: 1;
+    }
+    100%{
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+}
+
 </style>

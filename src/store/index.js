@@ -12,15 +12,23 @@ export default createStore({
             righthtml:'',
             titlebarclass:'redgradient',
         },
-        activityinfo: {}
+        activityinfo: {},
+        matchinfo:{}
     },
     mutations: {
         setTitlebar(state, obj) {
-            state.titlebar = Object.assign(state.titlebar,obj)
+            obj.lefttext = obj.lefttext ? obj.lefttext : '';
+            obj.righthtml = obj.righthtml? obj.righthtml:'';
+            obj.lefthtml = obj.lefthtml ? obj.lefthtml : '';
+            obj.righttext = obj.righttext ? obj.righttext : '';
+            state.titlebar = Object.assign(state.titlebar,obj);
         },
         saveActivity(state, obj) {
-            state.activityinfo = obj;
+            state.activityinfo = JSON.parse(JSON.stringify(obj));
         },
+        setmatchinfo(state,obj){
+            state.matchinfo = JSON.parse(JSON.stringify(obj))
+        }
     },
     actions: {
 

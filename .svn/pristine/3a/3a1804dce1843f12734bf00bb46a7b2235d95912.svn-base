@@ -1,0 +1,147 @@
+body,
+html {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    background-color: #fff;
+}
+
+body,
+div,
+span,
+font,
+i,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+hr,
+p,
+blockquote,
+dl,
+dt,
+dd,
+ul,
+ol,
+li,
+pre,
+form,
+fieldset,
+legend,
+button,
+input,
+textarea,
+th,
+td,
+a {
+    font-size: 14px;
+    margin: 0;
+    padding: 0;
+}
+
+fieldset,
+img {
+    border: 0;
+    display: block;
+}
+
+a {
+    text-decoration: none;
+}
+
+#template {
+    display: none;
+}
+
+.ks-clear:after,
+.clear:after {
+    content: '';
+    display: block;
+    height: 0;
+    clear: both;
+}
+
+.ks-clear,
+.clear {
+    *zoom: 1;
+    clear: both;
+}
+
+ul, li {
+    list-style: none;
+}
+#app{
+    position: absolute;
+    top:0;
+    left: 0;
+    right:0;
+    bottom:0;
+    z-index: 10;
+}
+.page {
+    background-color: #fff;
+    padding:11px 11px 0;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+[class^="elderlyicon-"], [class*="elderlyicon-"],.icons{
+    font-family: "elderly" !important;
+    font-size: 16px;
+    font-style: normal;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+.van-dialog{
+    width: 255px !important;
+}
+.van-dialog__header{
+    font-size: 16px !important;
+    color: #333333 !important;
+}
+.van-dialog__message{
+    color: #333333 !important;
+    font-size: 14px !important;
+}
+.van-dialog__message--has-title{
+    padding-top: 20px !important;
+    padding-bottom:25.5px !important;
+}
+.van-button__text{
+    font-size: 15px !important;
+}
+
+
+.van-toast__icon{
+    font-size: 40px !important;
+}
+.van-toast__text{
+    font-size: 15px;
+}
+
+.van-skeleton__avatar + .van-skeleton__content {
+    padding-top: 0rem !important;
+}
+.fullloading{
+    position: absolute;
+    top:0;
+    left: 0;
+    right: 0;
+    bottom:0;
+    overflow: hidden;
+}
+.boxloading{
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+@font-face {
+    font-family: "number"; /* Project id 2546457 */
+    src: url('../font/DINCond-Bold.woff2') format('woff2'),
+    url('../font/DINCond-Bold.woff') format('woff'),
+    url('../font/DINCond-Bold.ttf') format('truetype');
+}
+

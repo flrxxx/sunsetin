@@ -38,101 +38,181 @@
                     </div>
                 </div>
             </div>
-            <div class="scrolldom" v-else>
-            <div class="detailbox">
-                <div class="title">
-                        <div class="iteminfo">
-                            <div class="itemheader">
-                                <img :src="avatar">
-                            </div>
-                            <div class="itemtext">
-                                <div class="number">
-                                    <span class="cardnum">{{index}}</span>号
+            <div class="scrolldom" v-else ref="scrolldom" @scroll.passive="scrollEvent($event)">
+                <div class="detailbox">
+                    <div class="title">
+                            <div class="iteminfo">
+                                <div class="itemheader">
+                                    <van-image :src="avatar" fit="contain">
+                                        <template v-slot:error><van-icon name="photo-fail" /></template>
+                                        <template v-slot:loading>
+                                            <van-loading type="spinner" size="20" />
+                                        </template>
+                                    </van-image>
                                 </div>
-                                <div class="text">{{name}}</div>
+                                <div class="itemtext">
+                                    <div class="number">
+                                        <span class="cardnum">{{index}}</span>号
+                                    </div>
+                                    <div class="text">{{name}}</div>
+                                </div>
+                            </div>
+                            <div class="itemcard">
+                                <i class="icons elderlyicon-toupiaoicon"></i>
+                                <span class="cardnum">{{cardnum}}</span>
+                                <span class="cardtext">票</span>
                             </div>
                         </div>
-                        <div class="itemcard">
-                            <i class="icons elderlyicon-toupiaoicon"></i>
-                            <span class="cardnum">{{cardnum}}</span>
-                            <span class="cardtext">票</span>
+                    <div class="item_info"><b>表演者姓名：</b>{{introduce}}</div>
+
+                    <div class="itemvideo" >
+                        <video controls="controls"  name="media" id="video" style="max-width: 100% !important;width: 100% !important;">
+                            <source :src="videosrc">
+                        </video>
+                    </div>
+
+                    <div class="item_content" v-html="content"></div>
+                </div>
+                <div class="whitebox">
+                    <div class="tpbox" :class="issign == 0 ? 'unsign':'hassign'" @click="signactivity()">
+                        <div class="cardnum">{{cardnum}}</div>
+                        <div class="cardtext" v-if="issign != 0">已投票</div>
+                        <div class="cardtext" v-else>投一票</div>
+                    </div>
+                    <div class="iconstitle">
+                        <i class="icons elderlyicon-toupiaoicon"></i>
+                        <span>投票规则</span>
+                    </div>
+                    <ul class="signinfomation">
+                        <li v-for="item in signinfo">{{item}}</li>
+                    </ul>
+                </div>
+                <div class="whitebox" ref="talklist">
+                    <div class="iconstitle">
+                        <i class="icons elderlyicon-pinglun"></i>
+                        <span>评论</span>
+                    </div>
+                    <div class="talklist" v-if="!talkerror">
+                        <div class="boxloading" v-if="talkloading">
+                            <van-loading color="#dd2b45" />
+                        </div>
+                        <div v-else>
+                            <div class="emptybox" v-if="talkmember.length == 0">
+                                <van-empty description="暂无评论" />
+                            </div>
+                            <div v-else>
+                                <div class="talkitem" v-for="item in talkmember" :key="item.id">
+                                    <div class="talkitem_header">
+                                        <div class="talkuser">
+                                            <van-image :src="item.avatar" fit="contain">
+                                                <template v-slot:error><van-icon name="photo-fail" /></template>
+                                                <template v-slot:loading>
+                                                    <van-loading type="spinner" size="20" />
+                                                </template>
+                                            </van-image>
+                                        </div>
+                                        <div class="talkusername">{{item.wx_nickname}}</div>
+                                        <div class="talkuserzan" @click="liketalk(item)">
+                                            <i class="icons" :class="item.is_praise == 0 ? 'elderlyicon-dianzan' : 'elderlyicon-dianzaning'"></i>
+                                            {{item.praise}}
+                                            <div class="numberchange" :class="item.isdianzan == 'active' && item.talkclick  ? 'add' :''" >{{ item.isdianzan == 'active' ? '+':'' }}1</div>
+                                            <div class="numberchange" :class="item.isdianzan == '' && item.talkclick  ? 'sub' :''" >{{ item.isdianzan == '' ? '-':'' }}1</div>
+                                        </div>
+                                    </div>
+                                    <div class="talkcontent">{{item.message}}</div>
+                                    <div class="talktime">{{item.inserttime}}</div>
+                                </div>
+                                <drup_up :loadingtype="loadingtype"  :errorClick="errorClick"  />
+                            </div>
                         </div>
                     </div>
-                <div class="item_info"><b>表演者姓名：</b>{{introduce}}</div>
-
-                <div class="itemvideo" >
-                    <video controls="controls"  name="media" id="video" style="max-width: 100% !important;width: 100% !important;">
-                        <source :src="videosrc">
-                    </video>
-                </div>
-
-                <div class="item_content" v-html="content"></div>
-            </div>
-            <div class="whitebox">
-                <div class="tpbox" :class="issign == 1 ? 'hassign':'unsign'">
-                    <div class="cardnum">{{cardnum}}</div>
-                    <div class="cardtext" v-if="issign == 1">已投票</div>
-                    <div class="cardtext" v-else>投一票</div>
-                </div>
-                <div class="iconstitle">
-                    <i class="icons elderlyicon-toupiaoicon"></i>
-                    <span>投票规则</span>
-                </div>
-                <ul class="signinfomation">
-                    <li v-for="item in signinfo">{{item}}</li>
-                </ul>
-            </div>
-            <div class="whitebox">
-                <div class="iconstitle">
-                    <i class="icons elderlyicon-pinglun"></i>
-                    <span>评论</span>
-                </div>
-                <div class="talklist">
-
-                    <div class="talkitem" v-for="item in talkmember" :key="item.id">
-                        <div class="talkitem_header">
-                            <div class="talkuser">
-                                <img :src="item.avatar">
-                            </div>
-                            <div class="talkusername">{{item.name}}</div>
-                            <div class="talkuserzan">
-                                <i class="icons" :class="item.iszan == 1 ? 'elderlyicon-dianzaning' : 'elderlyicon-dianzan'"></i>
-                                {{item.zan}}
-                            </div>
-                        </div>
-                        <div class="talkcontent">{{item.talkcontent}}</div>
+                    <div v-else>
+                        <van-empty image="error" :description="talkerrormessage" >
+                            <van-button round type="danger" block  class="bottom-button" @click="reloaddata">重试</van-button>
+                        </van-empty>
                     </div>
                 </div>
             </div>
         </div>
+        <div class="footbar">
+            <div class="writemessage" @click="messageboxshow = true;">
+                <i class="elderlyicon-pinglun1"></i>
+                写评论
+            </div>
+            <div class="functionicon" @click="gotalklist">
+                <i class="elderlyicon-pinglunicon"></i>
+            </div>
+            <div class="functionicon" @click="likeit">
+                <i class="elderlyicon-dianzan" :class="isdianzan"></i>
+                <span>{{zannumber}}</span>
+                <div class="numberchange" :class="isdianzan == 'active' && isclick ? 'add' :''" >{{ isdianzan == 'active' ? '+':'' }}1</div>
+                <div class="numberchange" :class="isdianzan == '' && isclick ? 'sub' :''" >{{ isdianzan == '' ? '-':'' }}1</div>
+            </div>
+            <div class="functionicon" @click="shoucang">
+                <i class="elderlyicon-shoucang" :class="isshoucang"></i>
+            </div>
+            <div class="functionicon" @click="shares">
+                <i class="elderlyicon-fenxiang"></i>
+            </div>
         </div>
+        <van-popup v-model:show="messageboxshow" round position="bottom"  >
+            <div class="messagefield">
+                <van-field
+                    v-model.trim="talkmessage"
+                    rows="2"
+                    autosize
+                    label=""
+                    type="textarea"
+                    maxlength="50"
+                    placeholder="请输入留言"
+                    show-word-limit
+                />
+            </div>
+            <div class="messagebox">
+                <van-button type="primary" :loading="talkbtnloading" block @click="postmessage">发布</van-button>
+            </div>
+        </van-popup>
     </div>
 </template>
 
 <script>
-import { Skeleton } from 'vant';
+import drup_up from '@/components/drup_up.vue';
+import { Skeleton,Toast,Loading,Empty,Button,Lazyload,Popup,Field, Image as VanImage,Dialog} from 'vant';
+
 import 'video.js/dist/video-js.css';
 import { videoPlayer } from 'vue-video-player';
 export default {
     name: "activityDetails",
     components:{
         [Skeleton.name]:Skeleton,
-        videoPlayer
+        [Loading.name]:Loading,
+        [Empty.name]:Empty,
+        [Button.name]:Button,
+        videoPlayer,
+        drup_up,
+        [Lazyload.name]:Lazyload,
+        [VanImage.name]:VanImage,
+        [Popup.name]:Popup,
+        [Field.name]:Field
     },
     data(){
         return {
+            currentPage:1,
+            pageSize:10,
             loading:true,
             id:this.$route.query.id,
-            name:'玉都老年文艺团玉都老年文艺团玉都老年文艺团玉都老年文艺团玉都老年文艺团玉都老年文艺团',
-            title:'歌曲合唱《玉都我美丽的家乡》',
-            index:'46',
-            cardnum:'527221000',
-            avatar:'https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fattach.bbs.miui.com%2Fforum%2F201311%2F01%2F215828tpmddz2d2bfcz5pk.jpg&refer=http%3A%2F%2Fattach.bbs.miui.com&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=jpeg?sec=1623549721&t=61e51fb424dcd6eb610326db7843f61a',
-            images:'https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fattach.bbs.miui.com%2Fforum%2F201311%2F01%2F215828tpmddz2d2bfcz5pk.jpg&refer=http%3A%2F%2Fattach.bbs.miui.com&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=jpeg?sec=1623549721&t=61e51fb424dcd6eb610326db7843f61a',
-            zan:'389',
-            talk:'253',
-            time:'2021-01-19',
-            introduce:'表演者名称：胡晓军、宋久明、徐尚宾、朱锦华、郎石林、阎韵喜、罗荣庭、李庆山、韦三奎',
+            name:'',
+            title:'',
+            index:'',
+            cardnum:'',
+            avatar:'',
+            images:'',
+            isdianzan:'',
+            isshoucang:'',
+            zan:'',
+            talk:'',
+            time:'',
+            introduce:'',
             content:'',
             videosrc:'',
             issign:0,
@@ -142,69 +222,343 @@ export default {
                 '3、投票次数限制:每天每用户限投1票。'
             ],
             talkmember:[
-                {
-                    id:1,
-                    avatar:'https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fattach.bbs.miui.com%2Fforum%2F201311%2F01%2F215828tpmddz2d2bfcz5pk.jpg&refer=http%3A%2F%2Fattach.bbs.miui.com&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=jpeg?sec=1623549721&t=61e51fb424dcd6eb610326db7843f61a',
-                    name:'虞姬的剑舞',
-                    zan:56,
-                    iszan:0,
-                    talkcontent:'不仅是让项羽聊以解忧，更希望使项羽重燃斗志、突围求生。'
-                },{
-                    id:2,
-                    avatar:'https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fattach.bbs.miui.com%2Fforum%2F201311%2F01%2F215828tpmddz2d2bfcz5pk.jpg&refer=http%3A%2F%2Fattach.bbs.miui.com&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=jpeg?sec=1623549721&t=61e51fb424dcd6eb610326db7843f61a',
-                    name:'虞姬的剑舞',
-                    zan:56,
-                    iszan:1,
-                    talkcontent:'不仅是让项羽聊以解忧，更希望使项羽重燃斗志、突围求生。'
-                }
+                // {
+                //     id:1,
+                //     avatar:'https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fattach.bbs.miui.com%2Fforum%2F201311%2F01%2F215828tpmddz2d2bfcz5pk.jpg&refer=http%3A%2F%2Fattach.bbs.miui.com&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=jpeg?sec=1623549721&t=61e51fb424dcd6eb610326db7843f61a',
+                //     name:'虞姬的剑舞',
+                //     praise:56,
+                //     is_praise:1,
+                //     message:'不仅是让项羽聊以解忧，更希望使项羽重燃斗志、突围求生。'
+                // },
             ],
+            isdianzaning : false,
+            isclick :false,
+            isshoucanging :false,
+            isScroll:false,
+            loaddata : true,
+            talkerrormessage:'',
+            talkerror:false,
+            talkloading:true,
+            loadingtype:'none',
+            errorinfo:{
+                type:'error',
+                text:'网络连接失败'
+            },
+            messageboxshow:false,
+            talkmessage:'',
+            talkbtnloading:false,
+            talkclick:false,
         }
     },
     created(){
+
+    },
+    computed: {
+        zannumber() {
+            if(this.zan >= 10000){
+                return (this.zan / 10000).toFixed(1).indexOf('.0') > 0 ?  parseInt(this.zan / 10000) + '万'  : (this.zan / 10000).toFixed(1) + '万';
+            }else{
+                return this.zan;
+            }
+        }
     },
     mounted(){
+
+    },
+    methods:{
+        postmessage(){
+            if(this.talkmessage == ''){
+                Dialog.alert({message:'请输入评论内容'})
+                return false;
+            }
+            this.talkbtnloading = true;
+            let param = new URLSearchParams();
+            param.append('id',this.id);
+            param.append('message',this.talkmessage);
+            this.$http.post('/tab:add_comment',param).then((res) =>{
+                this.talkbtnloading = false;
+                if(res.res == 1){
+                    this.talkmessage  = '';
+                    this.messageboxshow = false;
+                    Toast.success('评论已发布');
+                    //更新评论
+                    this.currentPage = 1;
+                    this.get_comment();
+                }else{
+                    Dialog.alert({message:res.msg});
+                }
+            })
+        },
+        gotalklist(){
+           this.$refs.scrolldom.scrollTop = this.$refs.talklist.offsetTop
+        },
+        liketalk(item){
+            if(!item.isdianzaning){
+
+                item.isdianzaning = true;
+                let param = new URLSearchParams();
+                param.append('id',item.id);
+                // console.log(item);
+                // var param =  this.$qs.stringify({
+                //     ids:[283,2],
+                // }, {indices: 'repeat'})
+                // // param.append('ids',ts);
+                // this.$http.post('/tab:del_like',param).then((res)=>{
+                //     console.log(res);
+                // })
+
+
+                this.$http.post('/tab:add_comment_praise',param).then((res)=>{
+                    item.isdianzaning = false;
+                    item.talkclick = true;
+                    if(res.res == 1){
+                        if(item.is_praise == '0'){
+                            item.is_praise = 1;
+                            item.praise = parseInt( item.praise )+ 1;
+                            item.isdianzan = 'active';
+                        }else{
+                            item.is_praise = 0;
+                            item.praise = parseInt( item.praise )- 1;
+                            item.isdianzan = '';
+                        }
+                    }
+                })
+            }else{
+                Dialog.alert({message:'正在操作中，请勿重复点击'})
+            }
+        },
+        likeit(){
+            if( !this.isdianzaning ){
+                let param = new URLSearchParams();
+                param.append('id',this.id);
+                this.isdianzaning = true;
+                this.$http.post('/tab:add_like',param).then((res)=>{
+                    this.isdianzaning = false;
+                    this.isclick = true;
+                    if(res.res == 1){
+                        if(this.isdianzan == 'active'){
+                            this.zan = this.zan - 1;
+                            this.isdianzan = '';
+                        }else{
+                            this.zan = this.zan + 1;
+                            this.isdianzan = 'active';
+                        }
+                    }
+                })
+            }else{
+                Dialog.alert({message:'正在操作中，请勿重复点击'})
+            }
+        },
+        shoucang(){
+            if( !this.isshoucanging ){
+                this.isshoucanging = true;
+                let param = new URLSearchParams();
+                param.append('id',this.id);
+                this.$http.post('/tab:add_collection',param).then((res)=>{
+                    this.isshoucanging = false;
+                    if(res.res == 1){
+                        if(this.isshoucang == 'active'){
+                            this.isshoucang = '';
+                        }else{
+                            Toast.success({
+                                message: '已收藏',
+                            });
+                            this.isshoucang = 'active';
+                        }
+                    }
+                })
+            }else{
+                Dialog.alert({message:'正在操作中，请勿重复点击'})
+            }
+        },
+        signactivity(){
+            if(this.issign == 0){
+                let param = new URLSearchParams();
+                param.append('id',this.id);
+                this.$http.post('/tab:add_ticket',param).then((res)=>{
+                    if(res.res ==1){
+                        this.issign = 1;
+                        this.cardnum = parseInt(this.cardnum) + 1;
+                    }else{
+                        Dialog.alert({message:res.msg});
+                    }
+                })
+            }else{
+                Toast.fail('今日已投票');
+            }
+        },
+        reloaddata(){
+            this.talkerror = false;
+            this.get_comment();
+        },
+        get_comment(){
+
+            if(this.currentPage == 1) {
+                this.talkloading = true;
+            }
+            let param = new URLSearchParams();
+            param.append('page',this.currentPage);
+            param.append('pageSize',this.pageSize);
+            param.append('id',this.id);
+            this.$http.post('/tab:get_comment',param).then((res)=>{
+                this.talkloading = false;
+
+                if(res.res == 1){
+                    if(this.currentPage == 1){
+                        this.activity = [];
+                    }
+                    if(res.data.length > 0){
+                        res.data.filter((item) => {
+                            item.talkclick = false;
+                            item.isdianzan = item.is_praise == '0' ? '' : 'active';
+                            item.isdianzaning = false;
+                            return item;
+                        })
+                        if(this.currentPage == 1){
+                            this.talkmember = res.data;
+                        }else{
+                            this.talkmember = this.talkmember.concat(res.data);
+                        }
+                        if(res.data.length >= this.pageSize){
+                            this.loaddata = true;
+                            this.loadingtype = 'loading';
+                            this.isScroll = true;
+                        }else{
+                            this.loaddata = false;
+                            this.loadingtype = 'end';
+                            this.isScroll = false;
+                        }
+                    }else{
+                        this.loaddata = false;
+                        this.loadingtype = 'end';
+                        this.isScroll = false;
+                    }
+
+
+                }else{
+                    if(this.currentPage == 1) {
+                        this.talkerror = true;
+                        this.talkerrormessage =res.msg;
+                    }else{
+                        this.loadingtype = 'error';
+                        this.errorinfo.text = res.msg;
+
+                    }
+                }
+            },(err)=>{
+                if(this.currentPage == 1) {
+                    this.talkerror = true;
+                    this.talkerrormessage ='网络连接失败，请重试';
+                }else{
+
+                }
+            })
+        },
+        scrollEvent:function(e){
+            this.scrollTop = e.srcElement.scrollTop;
+            if(this.isScroll){
+                if(e.srcElement.scrollTop+e.srcElement.offsetHeight>e.srcElement.scrollHeight-100){
+                    this.loadMore(); //加载更多
+                }
+            }
+        },
+        loadMore:function(){
+            if(this.loaddata){
+                this.loaddata = false;
+                this.currentPage += 1;
+                this.get_comment();
+            }
+        },
+        errorClick:function(){
+            this.loadingtype = 'loading';
+            this.isScroll = true;
+            this.loaddata = false;
+            this.get_comment();
+        },
+        shares:function(){
+            let title = '';
+            let content = '';
+            let imgUrl = '';
+            let titleUrl = window.location.origin + '/sunsetin/activitydetail?id=' + this.id;
+            let url = window.location.origin + '/sunsetin/activitydetail?id=' + this.id;
+            let siteUrl = window.location.origin + '/sunsetin/activitydetail?id=' + this.id;
+            if(this.$android){
+                window.LanCareWeb.share(title,content,imgUrl,titleUrl,url,siteUrl);
+            }else if(this.$ios){
+                window.location.href = "objc:://sharesdk::/" + title + "::/" + content +"::/" + imgUrl +"::/" + titleUrl +"::/" +url +"::/" + siteUrl + "::/"+"";
+            }
+        }
+    },
+    activated: function () {
+        this.isdianzaning = false;
+        this.isclick =false;
+        this.isshoucanging =false;
+        this.isScroll=false;
+        this.loaddata =true;
+        this.talkerrormessage='';
+        this.talkerror=false;
+        this.talkloading=true;
+        this.messageboxshow = false;
+        this.talkmessage = '';
+        this.isclick = false;
+        this.loading = true;
+        this.id = this.$route.query.id;
+        this.currentPage = 1;
+        this.talkmember = [];
         if(this.id){
             let param = new URLSearchParams();
-            param.append('id', this.$route.query.id);
+            param.append('id', this.id);
             this.$http.post('/tab:enter_detail',param).then((res)=>{
                 // this.title = res.data.
+                document.title =res.data.work_name;
+                this.$store.commit('setTitlebar',{title:res.data.work_name});
                 this.title = res.data.work_name;
                 this.name = res.data.team_name;
                 this.index = res.data.enter_number;
                 this.cardnum = res.data.ticket_num;
                 this.avatar = res.data.avatar;
-                this.zan = res.data.like_num;
+                if(res.data.like_num){
+                    res.data.like_num = parseInt(res.data.like_num);
+                    this.zan = res.data.like_num;
+                }else{
+                    this.zan = 0;
+                }
+                if(res.data.is_like_num == '0'){
+                    this.isdianzan = ''
+                }else{
+                    this.isdianzan = 'active'
+                }
+                if(res.data.is_collection_num == '0'){
+                    this.isshoucang = ''
+                }else{
+                    this.isshoucang = 'active'
+                }
+                if(res.data.is_ticket_num == '0'){
+                    this.issign = 0
+                }else{
+                    this.issign = 1
+                }
                 this.talk = res.data.comment_num;
                 // this.time = res.data.create_time;
                 this.introduce = res.data.detail.join(',');
                 this.content = res.data.work_descrip;
                 this.videosrc = res.data.video_url;
-                console.log(this.videosrc)
-                this.loading = false;
-
-                // name:'玉都老年文艺团玉都老年文艺团玉都老年文艺团玉都老年文艺团玉都老年文艺团玉都老年文艺团',
-                //     title:'歌曲合唱《玉都我美丽的家乡》',
-                //     index:'46',
-                //     cardnum:'527221000',
-                //     avatar:'https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fattach.bbs.miui.com%2Fforum%2F201311%2F01%2F215828tpmddz2d2bfcz5pk.jpg&refer=http%3A%2F%2Fattach.bbs.miui.com&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=jpeg?sec=1623549721&t=61e51fb424dcd6eb610326db7843f61a',
-                //     images:'https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fattach.bbs.miui.com%2Fforum%2F201311%2F01%2F215828tpmddz2d2bfcz5pk.jpg&refer=http%3A%2F%2Fattach.bbs.miui.com&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=jpeg?sec=1623549721&t=61e51fb424dcd6eb610326db7843f61a',
-                //     zan:'389',
-                //     talk:'253',
-                //     time:'2021-01-19',
-                //     introduce:'表演者名称：胡晓军、宋久明、徐尚宾、朱锦华、郎石林、阎韵喜、罗荣庭、李庆山、韦三奎',
-                //     content:'',
-                //     issign:0,
+                this.$nextTick(()=>{
+                    this.loading = false;
+                })
             })
+            //获取评论
+            this.get_comment();
 
         }else{
             this.$router.push({path:'/'});
         }
-        // this.$http.post()
-    },
+    }
 }
 </script>
 
 <style scoped lang="less">
+
 .content{
     background: #ff6050;
     background: -moz-linear-gradient(90deg, #ff6050 0%, #dd2b45 100%);
@@ -222,6 +576,7 @@ export default {
     border-top-right-radius: 10px;
     height: 0;
     background-color: #fff;
+    margin-bottom: 50px;
     .scrolldom{
         height: 100%;
         overflow-y: auto;
@@ -245,10 +600,14 @@ export default {
                     border-radius: 22.5px;
                     overflow: hidden;
                     margin-right: 9px;
-                    img{
-                        display: block;
+
+                    /deep/ .van-image{
                         width: 100%;
                         height: 100%;
+                    }
+                    /deep/ .van-icon{
+                        font-size: 32px;
+                        color:#dcdee0;
                     }
                 }
                 .itemtext{
@@ -292,11 +651,11 @@ export default {
                     color:#e93d49;
                     font-size: 25px;
                     margin-right: 4px;
-                    line-height: 25px;
+                    line-height: normal;
                 }
                 .cardtext{
                     font-size: 14px;
-                    line-height: 25px;
+                    line-height: normal;
                 }
             }
         }
@@ -337,26 +696,41 @@ export default {
             width: 70px;
             height: 70px;
             border-radius: 35px;
-            background: #d73154;
-            background: -moz-linear-gradient(-90deg, #d73154 0%, #ff6050 100%);
-            background: -webkit-gradient(linear, right top, left top, color-stop(0%, #d73154), color-stop(100%, #ff6050));
-            background: -webkit-linear-gradient(-90deg, #d73154 0%, #ff6050 100%);
-            background: -o-linear-gradient(-90deg, #d73154 0%, #ff6050 100%);
-            background: -ms-linear-gradient(-90deg, #d73154 0%, #ff6050 100%);
-            background: linear-gradient(-90deg, #d73154 0%, #ff6050 100%);
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
+            background: #fff;
+            border:1px solid #ddd;
+            color:#000;
+            &.hassign{
+                background: #d73154;
+                background: -moz-linear-gradient(-90deg, #d73154 0%, #ff6050 100%);
+                background: -webkit-gradient(linear, right top, left top, color-stop(0%, #d73154), color-stop(100%, #ff6050));
+                background: -webkit-linear-gradient(-90deg, #d73154 0%, #ff6050 100%);
+                background: -o-linear-gradient(-90deg, #d73154 0%, #ff6050 100%);
+                background: -ms-linear-gradient(-90deg, #d73154 0%, #ff6050 100%);
+                background: linear-gradient(-90deg, #d73154 0%, #ff6050 100%);
+                .cardnum{
+                    font-family: 'number';
+                    color:#fff;
+                    font-size: 20px;
+                }
+                .cardtext{
+                    color:#fff;
+                    font-size: 14px;
+                }
+            }
             .cardnum{
                 font-family: 'number';
-                color:#fff;
+                color:#000;
                 font-size: 20px;
             }
             .cardtext{
-                color:#fff;
+                color:#000;
                 font-size: 14px;
             }
+
         }
         .iconstitle{
             display: flex;
@@ -395,9 +769,13 @@ export default {
                         border-radius: 14px;
                         overflow: hidden;
                         margin-right: 10px;
-                        img{
-                            width: 100%;
-                            height:100%;
+                        /deep/ .van-image{
+                            width: 28px;
+                            height: 28px;
+                        }
+                        /deep/ .van-icon{
+                            font-size: 32px;
+                            color:#dcdee0;
                         }
                     }
                     .talkusername{
@@ -415,7 +793,7 @@ export default {
                         display: flex;
                         align-items: center;
                         height: 28px;
-
+                        position: relative;
                         .icons{
                             font-size: 16px;
                             margin-right: 5px;
@@ -423,11 +801,21 @@ export default {
                                 color:#e93d49;
                             }
                         }
+                        .numberchange{
+                            right: 0;
+                        }
                     }
                 }
                 .talkcontent{
-                    font-size: 12px;
+                    font-size: 14px;
                     color:#111;
+                    padding-left: 38px;
+                    margin-bottom: 5px;
+                    word-break: break-all;
+                }
+                .talktime{
+                    font-size: 12px;
+                    color:#999;
                     padding-left: 38px;
                 }
             }
@@ -446,6 +834,112 @@ export default {
         height: 30px;
         left: 0;
         right: 0;
+    }
+}
+.footbar{
+    height:50px;
+    flex: 0 0 auto;
+    background-color: #fff;
+    border-top:1px solid #e0e6ed;
+    padding: 0 0px 0 11px;
+    display: flex;
+    align-items: center;
+    position: absolute;
+    bottom:0;
+    left: 0;
+    right: 0;
+    z-index: 10;
+    .writemessage{
+        flex:1 0 auto;
+        height: 32px;
+        border-radius:16px;
+        background-color: #f1f5f7;
+        display: flex;
+        align-items: center;
+        padding-left: 10px;
+        i{
+            margin-right: 5px;
+        }
+    }
+    .functionicon{
+        flex: 0 0 auto;
+        height: 50px;
+        padding:0 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        i{
+            font-size: 20px;
+            &.elderlyicon-dianzan.active{
+                &:before{
+                    content:'\e7f2'
+                }
+                color:#d73154;
+            }
+            &.elderlyicon-shoucang.active{
+                &:before{
+                    content:'\e808'
+                }
+                color: #E9B909;
+            }
+        }
+        span{
+            margin-left: 5px;
+            font-size: 16px;
+        }
+
+    }
+}
+
+.numberchange{
+    font-size: 16px;
+    position: absolute;
+    right: 8px;
+    opacity: 0;
+
+    &.add{
+        transform: translateY(0);
+        color:#d73154;
+        animation: addnumber 1s;
+    }
+    &.sub{
+        transform: translateY(-40px);
+        color:#0bb20c;
+        animation: addnumber 1s;
+    }
+}
+@keyframes addnumber {
+    0%{
+        transform: translateY(0);
+        opacity: 0;
+    }
+    40%{
+        transform: translateY(-20px);
+        opacity: 1;
+    }
+    60%{
+        transform: translateY(-20px);
+        opacity: 1;
+    }
+    100%{
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+}
+.bottom-button {
+    width: 160px;
+    height: 40px;
+}
+.messagebox{
+    padding:0 15px 15px;
+}
+.messagefield{
+    /deep/ .van-cell__value--alone{
+        background-color: #f1f5f7;
+    }
+    /deep/ .van-field__control{
+        padding: 5px;
     }
 }
 </style>

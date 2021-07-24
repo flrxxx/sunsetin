@@ -5,6 +5,11 @@ import my from '../views/my.vue'
 import activitylist from '../views/activitylist'
 import activitydetail from '../views/activityDetails'
 import testvideo from '../views/testvideo'
+import activityEnroll_list from '../views/activityEnroll_list'
+import activity_notice from '../views/activity_notice'
+import activity_detail from '../views/activity_detail'
+import bmpage from '../views/bmpage'
+import itempage from '../views/itempage'
 const routes = [
     {
         path: '/',
@@ -15,6 +20,60 @@ const routes = [
                 title:'活动列表',
             },
             keepAlive: true,
+        },
+    },
+    {
+        path:'/activityEnroll_list',
+        name:'activityEnroll_list',
+        component: activityEnroll_list,
+        meta: {
+            titlebar:{
+                title:'报名活动',
+            },
+            keepAlive: true,
+        },
+    },
+    {
+        path:'/itempage',
+        name:'itempage',
+        component: itempage,
+        meta: {
+            titlebar:{
+                title:'报名活动',
+            },
+            keepAlive: true,
+        },
+    },
+    {
+        path:'/activity_detail',
+        name:'activity_detail',
+        component: activity_detail,
+        meta: {
+            titlebar:{
+                title:'报名活动',
+            },
+            keepAlive: true,
+        },
+    },
+    {
+        path:'/bmpage',
+        name:'bmpage',
+        component: bmpage,
+        meta: {
+            titlebar:{
+                title:'报名活动',
+            },
+            keepAlive: true,
+        },
+    },
+    {
+        path:'/activity_notice',
+        name:'activity_notice',
+        component: activity_notice,
+        meta: {
+            titlebar:{
+                title:'活动通知',
+            },
         },
     },
     {
@@ -53,7 +112,7 @@ const routes = [
             titlebar:{
                 title:'节目详情',
             },
-            keepAlive: false,
+            keepAlive: true,
         }
     },
     {

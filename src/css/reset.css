@@ -72,7 +72,14 @@ a {
 ul, li {
     list-style: none;
 }
-
+#app{
+    position: absolute;
+    top:0;
+    left: 0;
+    right:0;
+    bottom:0;
+    z-index: 10;
+}
 .page {
     background-color: #fff;
     padding:11px 11px 0;
@@ -106,10 +113,7 @@ ul, li {
     font-size: 15px !important;
 }
 
-.van-toast{
-    width: 72px !important;
-    min-height: 72px !important;
-}
+
 .van-toast__icon{
     font-size: 40px !important;
 }
@@ -120,7 +124,20 @@ ul, li {
 .van-skeleton__avatar + .van-skeleton__content {
     padding-top: 0rem !important;
 }
-
+.fullloading{
+    position: absolute;
+    top:0;
+    left: 0;
+    right: 0;
+    bottom:0;
+    overflow: hidden;
+}
+.boxloading{
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
 @font-face {
     font-family: "number"; /* Project id 2546457 */
     src: url('../font/DINCond-Bold.woff2') format('woff2'),
@@ -128,3 +145,41 @@ ul, li {
     url('../font/DINCond-Bold.ttf') format('truetype');
 }
 
+
+.fullloading{
+    position: fixed;
+    top:0;
+    left: 0;
+    right:0;
+    bottom:0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    visibility: hidden;
+}
+.fullloading.show{
+    visibility: inherit;
+}
+.fullloading.show:after{
+    opacity: 1;
+}
+.fullloading .van-loading{
+    z-index: 10;
+}
+.fullloading .van-loading__spinner{
+    width: 40px;
+    height: 40px;
+}
+.fullloading:after{
+    content:'';
+    position: absolute;
+    top:0;
+    left: 0;
+    right: 0;
+    bottom:0;
+    z-index: 1;
+    background: rgba(255,255,255,0.9);
+    opacity: 0;
+    transition: opacity 0.3s;
+}
