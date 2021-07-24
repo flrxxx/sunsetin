@@ -119,11 +119,11 @@ export default {
         margin: 0;
         background-color: #f1f5f7;
     }
-    .activity_title_nomargin{
+    .activity_title{
         font-size: 16px;
         font-weight: bold;
         span{
-            font-size: 14px;
+            font-size: 12px;
             color:#666;
             font-weight: normal;
         }
