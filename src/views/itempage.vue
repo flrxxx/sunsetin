@@ -125,6 +125,7 @@ export default {
         span{
             font-size: 14px;
             color:#666;
+            font-weight: normal;
         }
     }
     .van-cell{
