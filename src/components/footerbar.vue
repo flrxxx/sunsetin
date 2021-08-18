@@ -14,7 +14,7 @@
             return {
                 footbar: [
                     {
-                        path:'/',
+                        path:'/activityindex',
                         icon:'elderlyicon-shouyeline',
                         name:'首页'
                     },
@@ -24,7 +24,7 @@
                         name:'报名'
                     },
                     {
-                        path:'/activity_notice',
+                        path:'/notice',
                         icon:'elderlyicon-bell',
                         name:'活动通知'
                     },
@@ -49,10 +49,11 @@
         padding: 0 11px;
         display: flex;
         align-items: center;
-        position: absolute;
+        position: fixed;
         bottom:0;
         left: 0;
         right: 0;
+        z-index: 999;
         .footeritem{
             flex:1 0 auto;
             display: flex;

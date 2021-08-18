@@ -54,33 +54,48 @@ export default {
                 [
                     {
                         icon:'<i class="elderlyicon-shenhe"></i>',
-                        path:'/selfIP',
+                        path:'/my_examine',
                         name:'报名作品审核',
                         needvip:2
                     },
                     {
                         icon:'<i class="elderlyicon-zuopin"></i>',
-                        path:'/editcard',
+                        path:'/my_works',
                         name:'我的作品'
                     },
                     {
                         icon:'<i class="elderlyicon-shoucang"></i>',
-                        path:'/serveinfopage',
+                        path:'/my_collection',
                         name:'我的收藏'
                     },
                     {
                         icon:'<i class="elderlyicon-zan"></i>',
-                        path:'/setpage',
+                        path:'/my_comment',
+                        query:{
+                            tab:1,
+                        },
                         name:'我的点赞'
                     },
                     {
                         icon:'<i class="elderlyicon-pinglun1"></i>',
-                        path:'/setpage',
+                        path:'/my_comment',
+                        query:{
+                            tab:2,
+                        },
                         name:'我的评论'
                     },
                 ]
             ]
         }
+    },
+    methods:{
+        jump:function(link){
+            if(link.query){
+                this.$router.push({path:link.path,query:{tab:link.query.tab}});
+            }else{
+                this.$router.push({path:link.path});
+            }
+        },
     },
     created(){
         this.$http.post('/tab:my_base').then((data)=>{
@@ -90,7 +105,14 @@ export default {
                 this.userinfo.userid = data.data.id;
             }
         })
-    }
+    },
+    activated() {
+        if(this.$android){
+            window.LanCareWeb.showRightTextButton("", 'emtypfunction()',0);
+        }else if(this.$ios){
+            window.webkit.messageHandlers.Lancare.postMessage({classname: 'showRightButton',type:'0',buttonText:'',funName:'emtypfunction()'});
+        }
+    },
 }
 </script>
 

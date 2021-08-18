@@ -1,3 +1,4 @@
+
 import  './css/reset.css';
 import { createApp } from 'vue'
 import App from './App.vue'
@@ -12,6 +13,7 @@ import fifterUrl from './lib/filterUrl.js';
 import qs from 'qs';
 
 router.beforeEach((to,from,next)=>{
+
     // store.setTitlebar(to.meta.titlebar);
     // store.commit('setTitlebar',to.meta.titlebar)
     next();
@@ -40,6 +42,18 @@ $http.interceptors.response.use((res) => {
     if(res.status == 200){
         if(res.data.res == 1){
             return res.data;
+        }else if(res.data.res == 401){
+            if(res.data.data.url){
+                window.location.href = res.data.data.url + encodeURI(window.location.href);
+            }else{
+                Dialog.alert({
+                    message:'登录状态已失效，请重新登录',
+                }).then(() => {
+
+                })
+                return res.data;
+            }
+
         }else{
             return res.data;
         }
@@ -85,17 +99,30 @@ main.config.globalProperties.$IMGurl = window.IMGurl;
 main.config.globalProperties.$android = window.android_app;
 main.config.globalProperties.$ios = window.ios_app;
 main.config.globalProperties.$qs = qs;
+main.config.globalProperties.$cityid = window.cityid || '';
 main.use(Icon);
 main.use(store);
 main.use(router);
 main.use(vueMiniPlayer);
 main.mount('#app');
 
+var emtypfunction = function(){};
+
 router.afterEach((to) => {
     try{
         store.commit('setTitlebar',to.meta.titlebar);
         document.title = to.meta.titlebar.title;
+        if(window.android_app){
+            window.LanCareWeb.showRightTextButton("", 'emtypfunction()',0);
+        }else if(window.ios_app){
+            window.webkit.messageHandlers.Lancare.postMessage({classname: 'showRightButton',type:'0',buttonText:'',funName:'emtypfunction()'});
+        }
+
+
+
     }catch(err){
 
     }
 })
+
+export default main

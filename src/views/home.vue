@@ -1,12 +1,17 @@
 <template>
-    <div class="content"  >
-        <div class="main" ref="list" @scroll.passive="scrollEvent($event)">
+    <div class="content" >
+
+        <van-pull-refresh  ref="list" success-duration="700" success-text="刷新成功" @refresh="onRefresh" v-model="isLoading" class="main" @scroll.passive="scrollEvent($event)">
             <van-search
                 v-model="search"
                 placeholder="请输入搜索关键词"
                 @search="onSearch"
                 background="linear-gradient(90deg, #ff6050 0%, #dd2b45 100%)"
-            />
+            >
+                <template #right-icon >
+                    <div @click="onSearch" style="display: flex;align-items: center;color:#dd2b45"><van-icon name="filter-o" />搜索</div>
+                </template>
+            </van-search>
             <div class="tabbox">
                 <div class="tabitem"  v-for="item in tabsnav" :key="item.type" :class="selectdtab == item.type ? 'active' :''" @click="changetabs(item.type)">
                     <div class="activebg">
@@ -24,7 +29,7 @@
                 </keep-alive>
                 <drup_up :loadingtype="loadingtype"  :errorClick="errorClick"  />
             </div>
-        </div>
+        </van-pull-refresh>
         <footerbar></footerbar>
     </div>
 </template>
@@ -32,10 +37,10 @@
 <script>
     import drup_up from '@/components/drup_up.vue';
     import footerbar from '@/components/footerbar.vue';
-    // import listloading from '@/components/listloading.vue';
+    import listloading from '@/components/listloading.vue';
     import activityitem from '@/components/activityitem.vue';
     import emptydate from '@/components/emptydate.vue';
-    import { Dialog,Toast,NavBar,Search,Loading,Overlay } from 'vant';
+    import { Dialog,Toast,NavBar,Search,Loading,Overlay ,PullRefresh} from 'vant';
 
     export default ({
         name: "home",
@@ -50,7 +55,8 @@
             [Search.name]:Search,
             [Loading.name]:Loading,
             [Overlay.name]:Overlay,
-            // listloading,
+            [PullRefresh.name]:PullRefresh,
+            listloading,
 
         },
         data(){
@@ -79,16 +85,25 @@
                 errorinfo:{
                     type:'error',
                     text:'网络连接失败'
-                }
+                },
+                isLoading:false,
             }
         },
         methods:{
+
+            onRefresh:function(){
+                this.currentPage = 1;
+                this.activity = [];
+                this.currentcomponent='listloading';
+
+                this.getData();
+            },
             itemclick:function(id){
                 let param = new URLSearchParams();
                 param.append('type', 'event');
                 param.append('id',id);
                 this.$http.post('/ajax_sunsetview',param).then();
-                this.$router.push({path:'/activitylist'});
+                this.$router.push({path:'/activitylist',query:{id:id}});
             },
             onSearch:function(value){
                 this.currentcomponent = 'listloading';
@@ -145,10 +160,11 @@
                 param.append('pageSize', this.pageSize);
                 param.append('event_time', this.selectdtab);
                 param.append('keyword',this.search);
-                this.$http.post('/tab:event_list',param).then((res)=>{
+                this.$http.post('/tab:event_list?city_id_change='+this.$cityid,param).then((res)=>{
                     if(res.res == 1){
                         if(this.currentPage == 1){
                             this.activity = [];
+                            this.isLoading = false;
                         }
                         if(res.data.length > 0){
                             var arr = [];
@@ -209,7 +225,6 @@
         },
         activated: function () {
             this.$refs.list.scrollTop = this.scrollTop;
-
         },
 
         deactivated: function () {
@@ -222,14 +237,17 @@
     .st0{fill:url(#SVGID_1_);}
     .content {
         .main {
-            position: absolute;
-            top:0;
-            left: 0;
-            right: 0;
-            bottom:50px;
+            //position: absolute;
+            //top:0;
+            //left: 0;
+            //right: 0;
+            //bottom:50px;
+            flex: 1 0 auto;
+            height: 0;
             display: flex;
             flex-direction: column;
             overflow-y: auto;
+            padding-bottom: 50px;
             /deep/ .van-search{
                 flex: 0 0 auto;
             }
@@ -315,5 +333,13 @@
         flex:1 0 auto;
         background-color: #fff;
     }
-
+/deep/ .van-pull-refresh__track{
+    display: flex;
+    flex-direction: column;
+    flex: 1 0 auto;
+    height: auto;
+}
+/deep/ .van-pull-refresh__head{
+    flex: 0 0 auto;
+}
 </style>

@@ -3,7 +3,7 @@
         <div class="activity_content">
             <div class="activity_title">{{activity.title}}</div>
             <div class="activity_imgside">
-                <van-image :src="activity.images" >
+                <van-image :src="activity.img" >
                     <template v-slot:error><div class="imgerror"><van-icon name="photo-fail" /></div></template>
                     <template v-slot:loading>
                         <van-loading type="spinner" size="20" />
@@ -18,14 +18,14 @@
             </div>
 
             <div class="activity_title_nomargin">作品名称</div>
-            <van-field v-model.trim="state.work_name" label="" placeholder="请输入作品名称" />
+            <van-field v-model.trim="state.work_name" label="" maxlength="20" placeholder="请输入作品名称" />
             <div class="activity_title_nomargin">表演者名称 / 团队名称</div>
-            <van-field v-model.trim="state.team_name" label="" placeholder="请输入团队名称" />
+            <van-field v-model.trim="state.team_name" label="" maxlength="20" placeholder="请输入团队名称" />
 
             <div class="activity_title_nomargin">请选择报名性质</div>
             <van-field name="radio" label="">
                 <template #input>
-                    <van-radio-group v-model="state.itemtype" direction="horizontal">
+                    <van-radio-group v-model="state.itemtype" @change="radiochange" direction="horizontal">
                         <van-radio name="1">个人</van-radio>
                         <van-radio name="2">团队</van-radio>
                     </van-radio-group>
@@ -34,7 +34,7 @@
             <div class="activity_title_nomargin" v-if="state.itemtype == 2">团队人数</div>
             <van-field name="stepper" label="填写人数" v-if="state.itemtype == 2">
                 <template #input>
-                    <van-stepper v-model="state.itemnumber" />
+                    <van-stepper v-model="state.itemnumber" :min="min" />
                 </template>
             </van-field>
             <div class="activity_title_nomargin">作品内容介绍</div>
@@ -42,9 +42,10 @@
                 <van-field
                     v-model.trim="state.message"
                     rows="5"
+                    maxlength="1000"
                     autosize
                     type="textarea"
-                    placeholder="请输入留言"
+                    placeholder="请输入作品内容介绍"
                 />
             </van-cell-group>
             <div class="activity_title_nomargin">才艺展示图片（图片不超过9张）</div>
@@ -55,7 +56,7 @@
                             <van-icon name="clear" />
                         </div>
                         <div class="imgbox" @click="preview(index)">
-                            <van-image :src="item.img" >
+                            <van-image :src="item" >
                                 <template v-slot:error><van-icon name="photo-fail" /></template>
                                 <template v-slot:loading>
                                     <van-loading type="spinner" size="20" />
@@ -64,7 +65,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="imgteam">
+                <div class="imgteam" v-if="state.filelist.length < 9">
                     <div class="imgteamcontent">
                         <div class="addimg" @click="addpic">
                             <div class="addiconbox">
@@ -89,7 +90,7 @@
 </template>
 
 <script>
-import {ImagePreview,Dialog,Loading, Skeleton, Lazyload, Image as VanImage,Button,Field,CellGroup,RadioGroup,Radio,Stepper } from 'vant';
+import {Toast,ImagePreview,Dialog,Loading, Skeleton, Lazyload, Image as VanImage,Button,Field,CellGroup,RadioGroup,Radio,Stepper } from 'vant';
 
 export default {
     name: "bmpage",
@@ -110,10 +111,12 @@ export default {
         return {
             activity:{
                 title:'',
-                images:'',
+                img:'',
             },
             typelist:[],
             pageloading:false,
+            loaddata:false,
+            min:1,
             state:{
                 id:'',
                 work_name:'',
@@ -126,59 +129,88 @@ export default {
             }
         }
     },
-    activated(){
-        this.state.work_name = '';
-        this.state.team_name = '';
-        this.state.work_type = [];
-        this.state.itemtype = '1';
-        this.state.filelist = [{img:'https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fpic1.win4000.com%2Fpic%2F8%2F53%2F2dd7443197.jpg&refer=http%3A%2F%2Fpic1.win4000.com&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=jpeg?sec=1629700303&t=5de4cc1079755113e6f3f5a65caeda83'},{img:'https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fpic1.win4000.com%2Fpic%2F8%2F53%2F2dd7443197.jpg&refer=http%3A%2F%2Fpic1.win4000.com&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=jpeg?sec=1629700303&t=5de4cc1079755113e6f3f5a65caeda83'}];
-        this.pageloading = true;
-        this.typelist = [];
-        this.activity.title = '';
-        this.activity.images = '';
-
-
-        this.id = this.$route.query.id;
-        this.state.id = this.id;
-        if(this.id) {
-            let param = new URLSearchParams();
-            param.append('id', this.id);
-            this.$http.post('/tab:event_detail',param).then((res)=>{
-                this.pageloading = false;
-                if(res.res == 1){
-                    this.activity = res.data;
-                    this.$http.post('/tab:type_list').then((res)=>{
-                        if(res.res == 1){
-                            for(var i in res.data){
-                                var temp = {};
-                                temp.id = i;
-                                temp.value = res.data[i];
-                                this.typelist.push(temp);
-                            }
-
-                        }
-                    })
-                }
+    beforeRouteEnter:(to,from,next)=>{
+        if(from.name == 'itempage'){
+            next(vm=>{
+                vm.loaddata = true;
             })
-            window['AppUploadImgCallback'] = arr =>{
-                this.AppUploadImgCallback(arr);
-            }
         }else{
-            this.$router.push({path:'/activityEnroll_list'})
+            next(vm=>{
+                vm.loaddata = false
+            })
         }
+    },
+    activated(){
+        if(this.loaddata){
+            // this.state = this.$store.state.matchinfo;
+            // this.state.work_type = this.state.work_type ? this.state.work_type : [];
+            // this.state.itemtype = this.state.itemtype  ? this.state.itemtype  : '1';
+            // this.activity = this.$store.state.matchactivity;
+        }else{
+            this.state.work_name = '';
+            this.state.team_name = '';
+            this.state.work_type = [];
+            this.state.message = '';
+            this.state.itemtype = '1';
+            this.state.filelist = [];
+            this.activity.title = '';
+            this.activity.images = '';
+            this.id = this.$route.query.id;
+            this.state.id = this.id;
+            this.pageloading = true;
+            if(this.id) {
+                this.typelist = [];
+                let param = new URLSearchParams();
+                param.append('id', this.id);
+                this.$http.post('/tab:event_detail',param).then((res)=>{
+                    this.pageloading = false;
+                    if(res.res == 1){
+                        this.activity = res.data;
+                        this.$http.post('/tab:type_list').then((res)=>{
+                            if(res.res == 1){
+                                for(var i in res.data){
+                                    var temp = {};
+                                    temp.id = i;
+                                    temp.value = res.data[i];
+                                    this.typelist.push(temp);
+                                }
+
+                            }
+                        })
+                    }
+                })
+                window['AppUploadImgCallback'] = arr =>{
+                    this.AppUploadImgCallback(arr);
+                }
+            }else{
+                this.$router.push({path:'/activityEnroll_list'})
+            }
+        }
+
+
+
+
     },
     deactivated(){
         window['AppUploadImgCallback'] = function(){};
     },
 
     methods:{
-
+        radiochange(val){
+            if(val == 1){
+                this.min = 1;
+                this.state.itemnumber = 1;
+            }else{
+                this.min = 2;
+                this.state.itemnumber = 2;
+            }
+        },
         selectitem(item){
             if(this.state.work_type.indexOf(item.id) >=0){
-                this.state.work_type.splice(this.seleteditem.indexOf(item.id),1)
+                this.state.work_type.splice(this.state.work_type.indexOf(item.id),1)
             }else{
                 this.state.work_type.push(item.id);
-            };
+            }
         },
         delcert(index){
             Dialog.confirm({
@@ -194,7 +226,7 @@ export default {
         preview(index){
             var arr = [];
             this.state.filelist.filter((item)=>{
-                arr.push(item.img);
+                arr.push(item);
             })
             ImagePreview({
                 images: arr,
@@ -249,6 +281,10 @@ export default {
                     Dialog.alert({message:'请选择团队人数'});
                     return false;
                 }
+                if(this.state.itemnumber > 30){
+                    Dialog.alert({message:'团队人数最大可选30人'});
+                    return false;
+                }
             }
             if(this.state.message == ''){
                 Dialog.alert({message:'请输入作品内容介绍'});
@@ -258,6 +294,7 @@ export default {
                 Dialog.alert({message:'请上传才艺展示图片'});
                 return false;
             }
+            this.$store.commit('setactivity',this.activity);
             this.$store.commit('setmatchinfo',this.state);
             this.$router.push({path:'/itempage'})
         }

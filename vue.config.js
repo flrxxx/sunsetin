@@ -1,5 +1,5 @@
 const path = require("path");
-const webpack = require('webpack')
+const webpack = require('webpack');
 module.exports = {
     chainWebpack: config =>{
         config.plugin('html')
@@ -23,6 +23,14 @@ module.exports = {
                 }
             },
             "/ajax_sunsetview":{
+                target: 'http://d.zhangjinkai.com',
+                changeOrigin: true, // 是否改变域名
+                ws: true,
+                cookieDomainRewrite: {
+                    'zhangjinkai.com': 'localhost'
+                }
+            },
+            "/ajax_wechatshare":{
                 target: 'http://d.zhangjinkai.com',
                 changeOrigin: true, // 是否改变域名
                 ws: true,

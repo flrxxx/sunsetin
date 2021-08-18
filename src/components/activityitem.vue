@@ -44,7 +44,7 @@ export default {
     methods:{
         navigate(item){
             this.$emit('itemclick',item.id);
-            this.$store.commit('saveActivity',item);
+            // this.$store.commit('saveActivity',item);
         }
     }
 }

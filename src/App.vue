@@ -1,6 +1,6 @@
 <template>
     <div class="fullpage">
-        <div class="headbar" v-show="titlebar.show" :class="titlebar.titlebarclass">
+        <div class="headbar" v-show="titlebar.show" :class="titlebar.titlebarclass" v-if="!app">
             <van-nav-bar
                 :title="titlebar.title"
                 :left-text="titlebar.lefttext"
@@ -20,14 +20,11 @@
                 </template>
             </van-nav-bar>
         </div>
-        <router-view v-slot="{ Component }" v-if="$route.meta.keepAlive">
-            <keep-alive>
+        <div class="pagecontent">
+            <router-view v-slot="{ Component }"  >
                 <component :is="Component" ref="child" class="content" />
-            </keep-alive>
-        </router-view>
-        <router-view v-if="!$route.meta.keepAlive"  v-slot="{ Component }" >
-            <component :is="Component" ref="child" class="content" />
-        </router-view>
+            </router-view>
+        </div>
     </div>
 </template>
 
@@ -40,16 +37,19 @@ import {NavBar} from 'vant'
       },
       data(){
           return {
-              titlebar:this.$store.state.titlebar
+              titlebar:this.$store.state.titlebar,
+              app:true,
           }
       },
       created(){
-          // alert(this.$store.state.titlebar.show);
+          this.app = this.$android|| this.$ios;
+          this.app = this.app ? true : false;
       },
       methods:{
           onClickLeft:function(){
               try{
                   var back = this.$refs.child.leftBtnClick();
+
                   if(!back){
                       this.$router.go(-1);
                   }
@@ -64,9 +64,14 @@ import {NavBar} from 'vant'
 
               }
           }
+      },
+      mounted(){
       }
   }
 </script>
+<style>
+*{-webkit-overflow-scrolling: touch;}
+</style>
 <style scoped lang="less">
 
 .redgradient{
@@ -115,13 +120,26 @@ import {NavBar} from 'vant'
 }
 </style>
 <style lang="less" scoped>
+.fullpage{
+    position: absolute;
+    top:0;
+    left: 0;
+    right: 0;
+    bottom:0;
+    z-index: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
     .content{
-        position: absolute;
-        top:46px;
-        left: 0;
-        right: 0;
-        bottom:0;
-        z-index: 1;
+        //position: absolute;
+        //top:46px;
+        //left: 0;
+        //right: 0;
+        //bottom:0;
+        //z-index: 1;
+        flex:1 0 auto;
+        width: 100%;
         overflow-y: auto;
         display: flex;
         flex-direction: column;
@@ -133,5 +151,14 @@ import {NavBar} from 'vant'
     }
     .fullpage{
 
+    }
+    .headbar{
+        flex:0 0 auto;
+    }
+    .pagecontent{
+        position: relative;
+        flex:1 0 auto;
+        display: flex;
+        flex-direction: column;
     }
 </style>

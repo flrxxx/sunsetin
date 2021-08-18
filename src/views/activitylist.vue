@@ -1,11 +1,15 @@
 <template>
-    <div class="content" ref="list" @scroll.passive="scrollEvent($event)">
+    <van-pull-refresh ref="list" v-model="isLoading" success-duration="700" success-text="刷新成功" @refresh="onRefresh"  @scroll.passive="scrollEvent($event)">
         <van-search
             v-model="search"
             placeholder="请输入搜索关键词"
             @search="onSearch"
             background="linear-gradient(90deg, #ff6050 0%, #dd2b45 100%)"
-        />
+        >
+            <template #right-icon >
+                <div @click="onSearch" style="display: flex;align-items: center;color:#dd2b45"><van-icon name="filter-o" />搜索</div>
+            </template>
+        </van-search>
         <div class="activity_info" >
             <div class="activity_info_bg" :class="loading ? 'isloading':''">
                 <div class="activity_name">{{activityinfo.title}}</div>
@@ -18,7 +22,7 @@
                 </div>
                 <div class="activity_line">
                     <div class="space_item">
-                        <label>参赛节目：</label>
+                        <label>浏览量：</label>
                         <div class="text">{{ activityinfo.checknum }}</div>
                     </div>
                     <div class="space_item">
@@ -35,12 +39,17 @@
                 <emptydate :Emptytype="type" :Emptytext="text"></emptydate>
             </div>
             <div v-else>
-                <hdlist :activitylist="activitylist"></hdlist>
+                <hdlist :activitylist="activitylist" @itemclick="itemclick" @sharediashow="sharediashow"></hdlist>
                 <drup_up :loadingtype="loadingtype" :errorClick="errorClick" v-if="activitylist.length  > 0" />
             </div>
         </div>
-
-    </div>
+        <div class="popupshare" v-if="shareshow" @click="shareshow = false">
+            <div class="popupsharearrow"></div>
+            <div class="popupsharetext">点击右上角 "<span>···</span>" 进行分享
+            </div>
+            <div class="popupbg"></div>
+        </div>
+    </van-pull-refresh>
 </template>
 
 <script>
@@ -48,19 +57,30 @@ import drup_up from '@/components/drup_up.vue';
 import emptydate from '@/components/emptydate.vue';
 import hdlist from '@/components/hd_list.vue';
 import listloading from '@/components/listloading';
-import {Search,Loading} from 'vant';
+import {Search,Loading,PullRefresh,Dialog} from 'vant';
+import wx from 'weixin-js-sdk';
 export default {
-    name: "activitylist",
+    name: "Activitylist",
     components:{
         drup_up,
         hdlist,
         [Search.name]:Search,
         [Loading.name]:Loading,
+        [PullRefresh.name]:PullRefresh,
+        [Dialog.name]:Dialog,
         emptydate,
         listloading
     },
     data() {
         return {
+            activityinfo:{
+                title:'',
+                time:'',
+                vote:'',
+                checknum:'',
+                city:'',
+            },
+            eventid:this.$route.query.id,
             title:'',
             loading:false,
             loadingtype:'none',//上滑加载暂不启动
@@ -68,6 +88,8 @@ export default {
             loaddata:false,
             currentPage:1,
             isScroll :false,
+            isLoading:false,
+            shareshow:false,
             scrollTop:0,
             activitylist:[],
             gogo:0,
@@ -80,19 +102,27 @@ export default {
             }
         }
     },
-    computed:{
-        activityinfo:function(){
-            if(Object.keys(this.$store.state.activityinfo).length == 0){
-                this.$router.replace({path:'/'});
-                return {};
-            }else{
-                var temp = JSON.parse(JSON.stringify(this.$store.state.activityinfo));
-                temp.vote = this.$store.state.activityinfo.vote;
-                return this.$store.state.activityinfo;
-            }
-        }
-    },
+    // computed:{
+        // activityinfo:function(){
+
+            // if(Object.keys(this.$store.state.activityinfo).length == 0){
+            //     this.$router.replace({path:'/'});
+            //     return {};
+            // }else{
+            //     var temp = JSON.parse(JSON.stringify(this.$store.state.activityinfo));
+            //     temp.vote = this.$store.state.activityinfo.vote;
+            //     return this.$store.state.activityinfo;
+            // }
+        // }
+    // },
     methods:{
+        leftBtnClick(){
+            this.$router.push({path:'/',query:{id:this.event_id}});
+            return true;
+        },
+        itemclick:function(item){
+            this.$router.push({path:'/activitylist/activitydetail',query:{id:item.id}})
+        },
         errorClick:function(){
             this.loadingtype = 'loading';
             this.isScroll = true;
@@ -100,7 +130,7 @@ export default {
             this.getData({tab:this.selectdtab,currentPage:this.currentPage});
         },
         scrollEvent:function(e){
-            this.scrollTop = e.srcElement.scrollTop;
+            // this.scrollTop = e.srcElement.scrollTop;
             if(this.isScroll){
                 if(e.srcElement.scrollTop+e.srcElement.offsetHeight>e.srcElement.scrollHeight-100){
                     this.loadMore(); //加载更多
@@ -115,27 +145,39 @@ export default {
             }
         },
         onSearch(){
-
+            this.currentPage = 1;
+            this.getData();
         },
-        getData:function(obj){
+        onRefresh(){
+            this.loading = true;
+            this.currentPage = 1;
+            this.getData();
+        },
+        sharediashow(item){
+            this.shareshow = true;
+        },
+        getData:function(){
+
             let param = new URLSearchParams();
             param.append('page', this.currentPage);
             param.append('pageSize', this.pageSize);
             param.append('keyword', this.search);
-            param.append('event_id',this.activityinfo.id);
+            param.append('event_id',this.eventid);
             var _this = this;
             this.$http.post('/tab:enter_list',param).then((res)=>{
                 this.loading = false;
                 if(res.res == 1){
                     if(this.currentPage == 1){
                         this.activitylist= [];
+                        // setTimeout(() => {
+                        this.isLoading = false;
+                        // }, 1000);
                     }
                     if(res.data.length > 0){
                         res.data.filter((item)=>{
                             item.name = item.team_name;
                             item.title = item.work_name;
                             item.index = item.enter_number;
-                            item.avatar = item.avatar;
                             item.cardnum = item.ticket_num;
                             item.images = item.image;
                             item.zan = item.like_num;
@@ -146,6 +188,7 @@ export default {
                             _this.activitylist.push(item);
                         })
                     }
+
                     if(res.data.length >= this.pageSize){
                         this.loaddata = true;
                         this.loadingtype = 'loading';
@@ -166,38 +209,124 @@ export default {
     },
 
     mounted:function () {
+        this.search = '';
+        this.loading = true;
+        let param = new URLSearchParams();
+        param.append('id', this.eventid);
+        this.$http.post('/tab:event_detail',param).then((res)=>{
+            this.loading = false;
+            if(res.res == 1){
+                this.activityinfo.title = res.data.title;
+                this.activityinfo.time = res.data.match_begintime + '-' + res.data.match_endtime;
+                this.activityinfo.checknum = res.data.view_num;
+                this.activityinfo.city = res.data.city;
+                this.activityinfo.vote = res.data.status_name == '正在投票' ? 'isnow':'ispass';
+                this.$store.commit('setTitlebar', {title: this.activityinfo.title});
+                document.title = this.activityinfo.title;
+                var hdimg = res.data.img;
+                var text =res.data.description;
+                param = new URLSearchParams();
+                param.append('urlrtn', window.location.href);
+                this.$http.post('/ajax_wechatshare',param).then((res)=>{
+                    if(res.res == 1){
+                        wx.config({
+                            debug: false,
+                            appId: res.data.appid,
+                            timestamp: res.data.timestamp,
+                            nonceStr: res.data.nonceStr,
+                            signature: res.data.signature,
+                            jsApiList: ['onMenuShareTimeline',
+                                'onMenuShareAppMessage',
+                                'onMenuShareQZone',
+                                'onMenuShareWeibo',
+                                'onMenuShareQQ',]
+                        })
+                        wx.ready(function () {
+                            wx.onMenuShareTimeline({
+                                title: this.activityinfo.title, // 分享标题
+                                link: window.location.href,
+                                imgUrl: hdimg, // 分享图标
+                                desc: text,
+                                success: function () {}
+                            });
+                            wx.onMenuShareAppMessage({
+                                title: this.activityinfo.title, // 分享标题
+                                link: window.location.href,
+                                imgUrl: hdimg, // 分享图标
+                                desc: text,
+                                success: function () {
+
+                                }
+                            });
+                            wx.onMenuShareQZone({
+                                title: this.activityinfo.title, // 分享标题
+                                link: window.location.href,
+                                imgUrl: hdimg, // 分享图标
+                                desc: text,
+                                success: function () {
+
+                                }
+                            });
+                            wx.onMenuShareWeibo({
+                                title: this.activityinfo.title, // 分享标题
+                                link: window.location.href,
+                                imgUrl: hdimg, // 分享图标
+                                desc: text,
+                                success: function () {
+
+                                }
+                            });
+                            wx.onMenuShareQQ({
+                                title: this.activityinfo.title, // 分享标题
+                                link: window.location.href,
+                                imgUrl: hdimg, // 分享图标
+                                desc: text,
+                                success: function () {
+
+                                }
+                            })
+                        })
+                    }
+
+                })
+
+
+            }else{
+                Dialog.alert({
+                    title: '提示',
+                    message: '活动信息获取失败',
+                    theme: 'round-button',
+                }).then(() => {
+                    this.$router.push({path:'/'});
+                });
+            }
+        })
+
+        this.getData();
 
     },
-    beforeRouteEnter:(to,from,next)=>{
-        if(from.name == 'Home'){
-            next(vm=>{
-                vm.$data.gogo ++;
-                vm.upload = true;
-                vm.loading = true;
-            })
-        }else{
-            next(vm=>{
-                console.log(vm)
-                vm.upload = false
-            })
-        }
 
-    },
     activated: function () {
-        this.$store.commit('setTitlebar', {title: this.activityinfo.title});
-        document.title = this.activityinfo.title;
-        if (this.upload){
-            this.getData();
-        }else{
-            this.$refs.list.scrollTop = this.scrollTop;
-        }
+        this.$refs.list.$el.scrollTop = this.scrollTop;
     },
     deactivated: function () {
+
+    },
+    beforeRouteLeave(to, from, next) {
+        if(to.name == 'Activitydetail'){
+            this.scrollTop = this.$refs.list.$el.scrollTop;
+        }else{
+            this.scrollTop = 0;
+        }
+        next();
     }
 }
 </script>
 
 <style scoped lang="less">
+.content{
+    height: 0;
+}
 .van-search{
     flex: 0 0 auto;
 }
@@ -209,11 +338,6 @@ export default {
         background-image: -o-linear-gradient(90deg, #ff6050 0%, #dd2b45 100%);
         background-image: -ms-linear-gradient(90deg, #ff6050 0%, #dd2b45 100%);
         background-image: linear-gradient(90deg, #ff6050 0%, #dd2b45 100%);
-        position: sticky;
-        top:0;
-        left: 0;
-        right: 0;
-        z-index: 10;
         flex:0 0 auto;
 
         .activity_info_bg{
@@ -372,4 +496,64 @@ export default {
     .emptybox{
         background-color: #fff;
     }
+/deep/ .van-pull-refresh__track{
+    display: flex;
+    flex-direction: column;
+    flex: 1 0 auto;
+    height: auto;
+}
+/deep/ .van-pull-refresh__head{
+    flex: 0 0 auto;
+}
+.popupshare {
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    right: 0px;
+    bottom: 0px;
+    z-index: 99;
+
+    .popupsharearrow {
+        position: absolute;
+        right: 20px;
+        top: 20px;
+        width: 80px;
+        height: 80px;
+        background-repeat: no-repeat;
+        background-size: 100% 100%;
+        z-index: 2;
+        background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHMAAABuCAMAAAAj1dyRAAAAgVBMVEUAAAD///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////9d3yJTAAAAKnRSTlMAA/kTcizpPPbvI+O8sAmd3shN08+2emkbDtmmlPPChzVigFcfjVxSRaptVV1IAAAD9UlEQVRo3rzY13bqQAwF0DPNNRgwpncCgZz//8BrY1ghXOxhHPB+pGkhJI0GtEj4OkWbjO4sSY7REvXVjVnK0Ab/MOANhffT/O0T75extOzzrIv3W5CU/Z2fXDIc4/0SfThOAWyL2JKkQVuSuMjrsM1uwYhkMNEkO2iJCkmuYUiGAu2Yk/SmgEfSRyt85vQl9g5tEAOSmbhU7wfaoHlN6USSK7QgWv7Mn5H0fLTgg6SnUEoEWjBmbotmlFJwt182rJtId3qSpJx9a+Oe2WUER+LY562ZVo41q+Fok/FeOEqefbNsktmR5IUMA17FJzxjOiMZTuBEzHnW174CoHw9lDxbC9h1mTvCzTcLHYMfk5FXPiiea5MF3KyZ81L8pg6SuaEtqC/LOevkyFwvevBp8RP71CQmGUZwojyS8eThU5l1cRQr9x+zrABp8JCalVO02pwNDksj69rZBCQXllLooMHXHIjaCROo2pIdTOFGSZIpKom4Jg2pJOlFcLQlObON0j4eOgUkgw3QYByMbImQD7PnFyFlCmeeddHPKjbHTcjcF5wpkkthLbJxVcgx3G3st+LRwwb0G4fEieSHfYQfcCcNmNNoIiU5RC39IOZYNg8Jn9b1d/dfbsWBOblFM5H9Ujy/XyKTDnNBioZEYP2XY3bXK1HGXOijsb6tx/Ykg+SmAjzmegbNrW2Fq3+9IDmw8KHwB4aWQTS4LVAzYGEh8Cer+m7xSUqFM1FupMsv/FFav34Mf85kf8BCFr3mEheautSXF9kuC3KRwEHd+hHvq5uzD2C6W7LQ8194dYxN5bKUYqo9FuQhwYssKiujQzLbr0OerQwsnK8rQ/PopKMneRZ/4pXEggX5nYr7PrrytMCLbQOeeZ3RySilos1xN/R41dMJXs+sWKn/KfAe/3q1ux0FYSAMw19pUIvyt64G0KCuZEXu/wI3dg6abDz1fW5gEtqmnW+475d3mkuuD5pPYfnn+cGCaSBTj0MIYft9yKw9It3s9Urqgt2bpIOFTJgUMoHsrhmdQHE0EyaRan7P/r5KngSyxRx6gXzzekXnArmdpdyks+VtIHuQtU6gObPwD5QHS3xA3dYaCZCPr5OjQH1rITfIDmbpxHFlbKArcdwzHsxeHGtZ9l4cKzl04ljJbSGOK/GS1SENdSB+jCUncbo9XrJo8B17jb1068WZY+qz68W5ZbGvdcK4SwopIVW50M3XFCPuzUOcddywq7U4NiAZCmFcbQFfL0zRpv8dIDat2NzFSKeyyYWZRltKL8wjftfs6ESpLBtezcJchzR4YrifjP6ueZsGJAx3tMC97oUpbfN8ieOXl9IL5JplWd3FKs4XL9Qfsp2rkLfPVnYAAAAASUVORK5CYII=');
+    }
+
+    .popupsharetext {
+        position: absolute;
+        top: 110px;
+        right: 20px;
+        left: 20px;
+        text-align: right;
+        font-size: 20px;
+        font-weight: bold;
+        letter-spacing: 2px;
+        color: #fff;
+        z-index: 2;
+
+        span {
+            padding: 10px;
+            font-size: 32px;
+            color: #fff;
+            vertical-align: middle;
+            letter-spacing: 0px;
+        }
+    }
+
+    .popupbg {
+        position: absolute;
+        top: 0px;
+        left: 0px;
+        right: 0px;
+        bottom: 0px;
+        background-color: rgba(0, 0, 0, .7);
+        z-index: 1;
+    }
+}
 </style>

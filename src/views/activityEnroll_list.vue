@@ -1,12 +1,16 @@
 <template>
     <div class="content"  >
-        <div class="main" ref="list" @scroll.passive="scrollEvent($event)">
+        <van-pull-refresh  ref="list" success-duration="700" success-text="刷新成功" @refresh="onRefresh" v-model="isLoading" class="main" @scroll.passive="scrollEvent($event)">
             <van-search
                 v-model="search"
                 placeholder="请输入搜索关键词"
                 @search="onSearch"
                 background="linear-gradient(90deg, #ff6050 0%, #dd2b45 100%)"
-            />
+            >
+                <template #right-icon >
+                    <div @click="onSearch" style="display: flex;align-items: center;color:#dd2b45"><van-icon name="filter-o" />搜索</div>
+                </template>
+            </van-search>
             <div class="tabbox">
                 <div class="tabitem"  v-for="item in tabsnav" :key="item.type" :class="selectdtab == item.type ? 'active' :''" @click="changetabs(item.type)">
                     <div class="activebg">
@@ -27,7 +31,7 @@
                 </keep-alive>
                 <drup_up :loadingtype="loadingtype" v-if="currentcomponent != 'listloading'" :errorClick="errorClick"  />
             </div>
-        </div>
+        </van-pull-refresh>
         <footerbar></footerbar>
     </div>
 </template>
@@ -39,7 +43,7 @@ import footerbar from '@/components/footerbar.vue';
 import listloading from '@/components/listloading.vue';
 import activityitem from '@/components/activityitem.vue';
 import emptydate from '@/components/emptydate.vue';
-import { Dialog,Toast,NavBar,Search,Loading,Overlay } from 'vant';
+import { Dialog,Toast,NavBar,Search,Loading,Overlay ,PullRefresh} from 'vant';
 
 export default ({
     name: "activityEnroll_list",
@@ -54,6 +58,7 @@ export default ({
         [Search.name]:Search,
         [Loading.name]:Loading,
         [Overlay.name]:Overlay,
+        [PullRefresh.name]:PullRefresh,
         listloading,
 
     },
@@ -64,22 +69,22 @@ export default ({
             tabsnav:[
                 {
                     type:23,
-                    name:'当前活动'
+                    name:'当前报名'
                 },
                 {
                     type:24,
-                    name:'即将举行'
+                    name:'即将报名'
                 },
                 {
                     type:25,
-                    name:'结束活动'
+                    name:'报名结束'
                 }
             ],
             loaddata : true,
             dataloading:true,
             activity:[],
             currentPage : 1,
-            pageSize:10,
+            pageSize:5,
             loadingtype:'none',
             scrollTop:0,
             search:'',
@@ -87,12 +92,20 @@ export default ({
             errorinfo:{
                 type:'error',
                 text:'网络连接失败'
-            }
+            },
+            isLoading:false,
         }
     },
 
     methods:{
         rightBtnClick:function(){
+        },
+        onRefresh:function(){
+            this.currentPage = 1;
+            this.activity = [];
+            this.currentcomponent='listloading';
+
+            this.getData();
         },
         itemclick:function(id){
             this.$router.push({
@@ -104,7 +117,7 @@ export default ({
             // param.append('id',id);
             // this.$http.post('/ajax_sunsetview',param).then((data)=>{})
         },
-        onSearch:function(value){
+        onSearch:function(){
             this.currentcomponent = 'listloading';
             this.currentPage = 1;
             this.getData();
@@ -160,6 +173,7 @@ export default ({
                 if(res.res == 1){
                     if(this.currentPage == 1){
                         this.activity = [];
+                        this.isLoading = false;
                     }
                     if(res.data.length > 0){
                         var arr = [];
@@ -232,14 +246,12 @@ export default ({
 .st0{fill:url(#SVGID_1_);}
 .content {
     .main {
-        position: absolute;
-        top:0;
-        left: 0;
-        right: 0;
-        bottom:50px;
+        flex: 1 0 auto;
+        height: 0;
         display: flex;
         flex-direction: column;
         overflow-y: auto;
+        padding-bottom: 50px;
         /deep/ .van-search{
             flex: 0 0 auto;
         }
@@ -325,5 +337,13 @@ export default ({
     flex:1 0 auto;
     background-color: #fff;
 }
-
+/deep/ .van-pull-refresh__track{
+    display: flex;
+    flex-direction: column;
+    flex: 1 0 auto;
+    height: auto;
+}
+/deep/ .van-pull-refresh__head{
+    flex: 0 0 auto;
+}
 </style>

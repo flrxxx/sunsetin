@@ -13,7 +13,8 @@ export default createStore({
             titlebarclass:'redgradient',
         },
         activityinfo: {},
-        matchinfo:{}
+        matchinfo:{},
+        matchactivity:{},
     },
     mutations: {
         setTitlebar(state, obj) {
@@ -28,6 +29,9 @@ export default createStore({
         },
         setmatchinfo(state,obj){
             state.matchinfo = JSON.parse(JSON.stringify(obj))
+        },
+        setactivity(state,obj){
+            state.matchactivity = JSON.parse(JSON.stringify(obj))
         }
     },
     actions: {

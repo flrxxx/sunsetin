@@ -28,7 +28,25 @@ export default {
         }
     },
     mounted(){
-
+        // console.log(this.loadingtype)
+        if(this.loadingtype == 'end'){
+            this.icontype = 'end';
+            this.isshow = true;
+            this.showicon = false;
+            this.loadtext = '没有更多了'
+        }else if(this.loadingtype == 'loading'){
+            this.icontype = 'loading';
+            this.isshow = true;
+            this.showicon = true;
+            this.loadtext = '加载中'
+        }else if(this.loadingtype == 'error'){
+            this.icontype = 'error';
+            this.isshow = true;
+            this.showicon = false;
+            this.loadtext = '数据加载失败，点击重新加载'
+        }else{
+            this.isshow = false;
+        }
     },
     watch:{
         loadingtype(newVal){
@@ -61,9 +79,8 @@ export default {
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 0.5rem 0;
+    padding: 0.5rem 0 1.2rem;
     box-sizing: border-box;
-    margin-bottom: .7rem;
     flex-shrink: 0;
     flex-grow: 0;
 }

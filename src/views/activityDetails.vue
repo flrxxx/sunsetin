@@ -65,8 +65,8 @@
                         </div>
                     <div class="item_info"><b>表演者姓名：</b>{{introduce}}</div>
 
-                    <div class="itemvideo" >
-                        <video controls="controls"  name="media" id="video" style="max-width: 100% !important;width: 100% !important;">
+                    <div class="itemvideo" v-if="videosrc != ''">
+                        <video controls="controls" :poster="videopic" name="media" id="video" style="max-width: 100% !important;width: 100% !important;">
                             <source :src="videosrc">
                         </video>
                     </div>
@@ -81,11 +81,10 @@
                     </div>
                     <div class="iconstitle">
                         <i class="icons elderlyicon-toupiaoicon"></i>
-                        <span>投票规则</span>
+                        <span>活动介绍</span>
                     </div>
-                    <ul class="signinfomation">
-                        <li v-for="item in signinfo">{{item}}</li>
-                    </ul>
+                    <div class="signinfomation" v-html="description">
+                    </div>
                 </div>
                 <div class="whitebox" ref="talklist">
                     <div class="iconstitle">
@@ -113,7 +112,7 @@
                                         </div>
                                         <div class="talkusername">{{item.wx_nickname}}</div>
                                         <div class="talkuserzan" @click="liketalk(item)">
-                                            <i class="icons" :class="item.is_praise == 0 ? 'elderlyicon-dianzan' : 'elderlyicon-dianzaning'"></i>
+                                            <i class="icons" :class="item.is_praise > 0 ? 'elderlyicon-dianzaning' : 'elderlyicon-dianzan'"></i>
                                             {{item.praise}}
                                             <div class="numberchange" :class="item.isdianzan == 'active' && item.talkclick  ? 'add' :''" >{{ item.isdianzan == 'active' ? '+':'' }}1</div>
                                             <div class="numberchange" :class="item.isdianzan == '' && item.talkclick  ? 'sub' :''" >{{ item.isdianzan == '' ? '-':'' }}1</div>
@@ -135,23 +134,23 @@
             </div>
         </div>
         <div class="footbar">
-            <div class="writemessage" @click="messageboxshow = true;">
+            <div class="writemessage" @click="messageboxshow = true;"  v-if="!loading">
                 <i class="elderlyicon-pinglun1"></i>
                 写评论
             </div>
-            <div class="functionicon" @click="gotalklist">
+            <div class="functionicon" @click="gotalklist"  v-if="!loading">
                 <i class="elderlyicon-pinglunicon"></i>
             </div>
-            <div class="functionicon" @click="likeit">
+            <div class="functionicon" @click="likeit"  v-if="!loading">
                 <i class="elderlyicon-dianzan" :class="isdianzan"></i>
                 <span>{{zannumber}}</span>
                 <div class="numberchange" :class="isdianzan == 'active' && isclick ? 'add' :''" >{{ isdianzan == 'active' ? '+':'' }}1</div>
                 <div class="numberchange" :class="isdianzan == '' && isclick ? 'sub' :''" >{{ isdianzan == '' ? '-':'' }}1</div>
             </div>
-            <div class="functionicon" @click="shoucang">
+            <div class="functionicon" @click="shoucang"  v-if="!loading">
                 <i class="elderlyicon-shoucang" :class="isshoucang"></i>
             </div>
-            <div class="functionicon" @click="shares">
+            <div class="functionicon" @click="shares"  v-if="!loading">
                 <i class="elderlyicon-fenxiang"></i>
             </div>
         </div>
@@ -172,6 +171,12 @@
                 <van-button type="primary" :loading="talkbtnloading" block @click="postmessage">发布</van-button>
             </div>
         </van-popup>
+        <div class="popupshare" v-if="shareshow" @click="shareshow = false">
+            <div class="popupsharearrow"></div>
+            <div class="popupsharetext">点击右上角 "<span>···</span>" 进行分享
+            </div>
+            <div class="popupbg"></div>
+        </div>
     </div>
 </template>
 
@@ -182,7 +187,7 @@ import { Skeleton,Toast,Loading,Empty,Button,Lazyload,Popup,Field, Image as VanI
 import 'video.js/dist/video-js.css';
 import { videoPlayer } from 'vue-video-player';
 export default {
-    name: "activityDetails",
+    name: "Activitydetail",
     components:{
         [Skeleton.name]:Skeleton,
         [Loading.name]:Loading,
@@ -197,12 +202,14 @@ export default {
     },
     data(){
         return {
+            event_id:'',
             currentPage:1,
             pageSize:10,
             loading:true,
             id:this.$route.query.id,
             name:'',
             title:'',
+            teamname:'',
             index:'',
             cardnum:'',
             avatar:'',
@@ -216,10 +223,12 @@ export default {
             content:'',
             videosrc:'',
             issign:0,
+            shareshow:false,
+            videopic:'',
             signinfo:[
-                '1、投票时间:2021年4月9日至2021年4月25日下午6点。',
-                '2、投票方法:网友选中候选人,直接投票。',
-                '3、投票次数限制:每天每用户限投1票。'
+                // '1、投票时间:2021年4月9日至2021年4月25日下午6点。',
+                // '2、投票方法:网友选中候选人,直接投票。',
+                // '3、投票次数限制:每天每用户限投1票。'
             ],
             talkmember:[
                 // {
@@ -263,9 +272,117 @@ export default {
         }
     },
     mounted(){
+        let param = new URLSearchParams();
+        param.append('urlrtn', window.location.href);
+        this.$http.post('/ajax_wechatshare',param).then((res)=>{
+            if(res.res == 1){
+                wx.config({
+                    debug: false,
+                    appId: res.data.appid,
+                    timestamp: res.data.timestamp,
+                    nonceStr: res.data.nonceStr,
+                    signature: res.data.signature,
+                    jsApiList: ['onMenuShareTimeline',
+                        'onMenuShareAppMessage',
+                        'onMenuShareQZone',
+                        'onMenuShareWeibo',
+                        'onMenuShareQQ',]
+                })
+            }
 
+        })
+        if(this.$android){
+            window.LanCareWeb.showRightTextButton("", 'emtypfunction()',0);
+        }else if(this.$ios){
+            window.webkit.messageHandlers.Lancare.postMessage({classname: 'showRightButton',type:'0',buttonText:'',funName:'emtypfunction()'});
+        }
+
+        this.id = this.$route.query.id;
+        param = new URLSearchParams();
+        param.append('id', this.id);
+        param.append('type', 'enter');
+        this.$http.post('/ajax_sunsetview',param);
+
+
+        this.isdianzaning = false;
+        this.isclick =false;
+        this.isshoucanging =false;
+        this.isScroll=false;
+        this.loaddata =true;
+        this.talkerrormessage='';
+        this.talkerror=false;
+        this.talkloading=true;
+        this.messageboxshow = false;
+        this.talkmessage = '';
+        this.isclick = false;
+        this.loading = true;
+
+        this.currentPage = 1;
+        this.talkmember = [];
+        if(this.id){
+            let param = new URLSearchParams();
+            param.append('id', this.id);
+            this.$http.post('/tab:enter_detail',param).then((res)=>{
+                // this.title = res.data.
+                document.title =res.data.work_name;
+                this.$store.commit('setTitlebar',{title:res.data.work_name});
+                this.title = res.data.work_name;
+                this.teamname = res.data.team_name;
+                this.name = res.data.team_name;
+                this.images = res.data.image;
+                this.index = res.data.enter_number;
+                this.cardnum = res.data.ticket_num;
+                this.avatar = res.data.avatar;
+                this.description = res.data.description;
+                this.event_id = res.data.event_id;
+                this.videopic = res.data.image;
+                if(res.data.like_num){
+                    res.data.like_num = parseInt(res.data.like_num);
+                    this.zan = res.data.like_num;
+                }else{
+                    this.zan = 0;
+                }
+                if(res.data.is_like_num == '0'){
+                    this.isdianzan = ''
+                }else{
+                    this.isdianzan = 'active'
+                }
+                if(parseInt(res.data.is_collection_num) > 0){
+                    this.isshoucang = 'active'
+                }else{
+                    this.isshoucang = ''
+                }
+                if(res.data.is_ticket_num == '0'){
+                    this.issign = 0
+                }else{
+                    this.issign = 1
+                }
+                this.talk = res.data.comment_num;
+                // this.time = res.data.create_time;
+                try{
+                    this.introduce = res.data.detail.join(',');
+                }catch(err){
+                    this.introduce = '';
+                }
+
+                this.content = res.data.work_descrip;
+                this.videosrc = res.data.video_url;
+                this.$nextTick(()=>{
+                    this.loading = false;
+                })
+            })
+            //获取评论
+            this.get_comment();
+
+        }else{
+            this.$router.push({path:'/'});
+        }
     },
     methods:{
+        leftBtnClick(){
+            this.$router.push({path:'/activitylist',query:{id:this.event_id}});
+            return true;
+        },
         postmessage(){
             if(this.talkmessage == ''){
                 Dialog.alert({message:'请输入评论内容'})
@@ -298,14 +415,7 @@ export default {
                 item.isdianzaning = true;
                 let param = new URLSearchParams();
                 param.append('id',item.id);
-                // console.log(item);
-                // var param =  this.$qs.stringify({
-                //     ids:[283,2],
-                // }, {indices: 'repeat'})
-                // // param.append('ids',ts);
-                // this.$http.post('/tab:del_like',param).then((res)=>{
-                //     console.log(res);
-                // })
+
 
 
                 this.$http.post('/tab:add_comment_praise',param).then((res)=>{
@@ -410,7 +520,7 @@ export default {
                     if(res.data.length > 0){
                         res.data.filter((item) => {
                             item.talkclick = false;
-                            item.isdianzan = item.is_praise == '0' ? '' : 'active';
+                            item.isdianzan = parseInt(item.is_praise) > 0  ?  'active' :'';
                             item.isdianzaning = false;
                             return item;
                         })
@@ -476,83 +586,64 @@ export default {
             this.get_comment();
         },
         shares:function(){
-            let title = '';
-            let content = '';
-            let imgUrl = '';
-            let titleUrl = window.location.origin + '/sunsetin/activitydetail?id=' + this.id;
-            let url = window.location.origin + '/sunsetin/activitydetail?id=' + this.id;
-            let siteUrl = window.location.origin + '/sunsetin/activitydetail?id=' + this.id;
+            let title = this.title;
+            let content = this.teamname;
+            let imgUrl = this.images;
+            let titleUrl = window.location.origin + '/sunsetin/activitylist/activitydetail?id=' + this.id;
+            let url = window.location.origin + '/sunsetin/activitylist/activitydetail?id=' + this.id;
+            let siteUrl = window.location.origin + '/sunsetin/activitylist/activitydetail?id=' + this.id;
             if(this.$android){
                 window.LanCareWeb.share(title,content,imgUrl,titleUrl,url,siteUrl);
             }else if(this.$ios){
                 window.location.href = "objc:://sharesdk::/" + title + "::/" + content +"::/" + imgUrl +"::/" + titleUrl +"::/" +url +"::/" + siteUrl + "::/"+"";
+            }else{
+                this.shareshow = true;
+                wx.ready(function () {
+                    wx.onMenuShareTimeline({
+                        title: this.title, // 分享标题
+                        link: window.location.origin + '/sunsetin/activitylist/activitydetail?id=' + this.id,
+                        imgUrl:  this.images, // 分享图标
+                        desc:  this.teamname,
+                        success: function () {}
+                    });
+                    wx.onMenuShareAppMessage({
+                        title: this.title, // 分享标题
+                        link: window.location.origin + '/sunsetin/activitylist/activitydetail?id=' + this.id,
+                        imgUrl:  this.images, // 分享图标
+                        desc:  this.teamname,
+                        success: function () {
+                        }
+                    });
+                    wx.onMenuShareQZone({
+                        title: this.title, // 分享标题
+                        link: window.location.origin + '/sunsetin/activitylist/activitydetail?id=' + this.id,
+                        imgUrl:  this.images, // 分享图标
+                        desc:  this.teamname,
+                        success: function () {
+                        }
+                    });
+                    wx.onMenuShareWeibo({
+                        title: this.title, // 分享标题
+                        link: window.location.origin + '/sunsetin/activitylist/activitydetail?id=' + this.id,
+                        imgUrl:  this.images, // 分享图标
+                        desc:  this.teamname,
+                        success: function () {
+                        }
+                    });
+                    wx.onMenuShareQQ({
+                        title: this.title, // 分享标题
+                        link: window.location.origin + '/sunsetin/activitylist/activitydetail?id=' + this.id,
+                        imgUrl:  this.images, // 分享图标
+                        desc:  this.teamname,
+                        success: function () {
+
+                        }
+                    })
+                })
             }
         }
     },
     activated: function () {
-        this.isdianzaning = false;
-        this.isclick =false;
-        this.isshoucanging =false;
-        this.isScroll=false;
-        this.loaddata =true;
-        this.talkerrormessage='';
-        this.talkerror=false;
-        this.talkloading=true;
-        this.messageboxshow = false;
-        this.talkmessage = '';
-        this.isclick = false;
-        this.loading = true;
-        this.id = this.$route.query.id;
-        this.currentPage = 1;
-        this.talkmember = [];
-        if(this.id){
-            let param = new URLSearchParams();
-            param.append('id', this.id);
-            this.$http.post('/tab:enter_detail',param).then((res)=>{
-                // this.title = res.data.
-                document.title =res.data.work_name;
-                this.$store.commit('setTitlebar',{title:res.data.work_name});
-                this.title = res.data.work_name;
-                this.name = res.data.team_name;
-                this.index = res.data.enter_number;
-                this.cardnum = res.data.ticket_num;
-                this.avatar = res.data.avatar;
-                if(res.data.like_num){
-                    res.data.like_num = parseInt(res.data.like_num);
-                    this.zan = res.data.like_num;
-                }else{
-                    this.zan = 0;
-                }
-                if(res.data.is_like_num == '0'){
-                    this.isdianzan = ''
-                }else{
-                    this.isdianzan = 'active'
-                }
-                if(res.data.is_collection_num == '0'){
-                    this.isshoucang = ''
-                }else{
-                    this.isshoucang = 'active'
-                }
-                if(res.data.is_ticket_num == '0'){
-                    this.issign = 0
-                }else{
-                    this.issign = 1
-                }
-                this.talk = res.data.comment_num;
-                // this.time = res.data.create_time;
-                this.introduce = res.data.detail.join(',');
-                this.content = res.data.work_descrip;
-                this.videosrc = res.data.video_url;
-                this.$nextTick(()=>{
-                    this.loading = false;
-                })
-            })
-            //获取评论
-            this.get_comment();
-
-        }else{
-            this.$router.push({path:'/'});
-        }
     }
 }
 </script>
@@ -577,9 +668,11 @@ export default {
     height: 0;
     background-color: #fff;
     margin-bottom: 50px;
+    display: flex;
     .scrolldom{
-        height: 100%;
+        flex: 1 0 auto;
         overflow-y: auto;
+        width: 100%;
     }
     .detailbox{
         padding: 11px 11px 11px;
@@ -940,6 +1033,60 @@ export default {
     }
     /deep/ .van-field__control{
         padding: 5px;
+    }
+}
+.loading{
+    width: 100%;
+}
+.popupshare {
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    right: 0px;
+    bottom: 0px;
+    z-index: 99;
+
+    .popupsharearrow {
+        position: absolute;
+        right: 20px;
+        top: 20px;
+        width: 80px;
+        height: 80px;
+        background-repeat: no-repeat;
+        background-size: 100% 100%;
+        z-index: 2;
+        background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHMAAABuCAMAAAAj1dyRAAAAgVBMVEUAAAD///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////9d3yJTAAAAKnRSTlMAA/kTcizpPPbvI+O8sAmd3shN08+2emkbDtmmlPPChzVigFcfjVxSRaptVV1IAAAD9UlEQVRo3rzY13bqQAwF0DPNNRgwpncCgZz//8BrY1ghXOxhHPB+pGkhJI0GtEj4OkWbjO4sSY7REvXVjVnK0Ab/MOANhffT/O0T75extOzzrIv3W5CU/Z2fXDIc4/0SfThOAWyL2JKkQVuSuMjrsM1uwYhkMNEkO2iJCkmuYUiGAu2Yk/SmgEfSRyt85vQl9g5tEAOSmbhU7wfaoHlN6USSK7QgWv7Mn5H0fLTgg6SnUEoEWjBmbotmlFJwt182rJtId3qSpJx9a+Oe2WUER+LY562ZVo41q+Fok/FeOEqefbNsktmR5IUMA17FJzxjOiMZTuBEzHnW174CoHw9lDxbC9h1mTvCzTcLHYMfk5FXPiiea5MF3KyZ81L8pg6SuaEtqC/LOevkyFwvevBp8RP71CQmGUZwojyS8eThU5l1cRQr9x+zrABp8JCalVO02pwNDksj69rZBCQXllLooMHXHIjaCROo2pIdTOFGSZIpKom4Jg2pJOlFcLQlObON0j4eOgUkgw3QYByMbImQD7PnFyFlCmeeddHPKjbHTcjcF5wpkkthLbJxVcgx3G3st+LRwwb0G4fEieSHfYQfcCcNmNNoIiU5RC39IOZYNg8Jn9b1d/dfbsWBOblFM5H9Ujy/XyKTDnNBioZEYP2XY3bXK1HGXOijsb6tx/Ykg+SmAjzmegbNrW2Fq3+9IDmw8KHwB4aWQTS4LVAzYGEh8Cer+m7xSUqFM1FupMsv/FFav34Mf85kf8BCFr3mEheautSXF9kuC3KRwEHd+hHvq5uzD2C6W7LQ8194dYxN5bKUYqo9FuQhwYssKiujQzLbr0OerQwsnK8rQ/PopKMneRZ/4pXEggX5nYr7PrrytMCLbQOeeZ3RySilos1xN/R41dMJXs+sWKn/KfAe/3q1ux0FYSAMw19pUIvyt64G0KCuZEXu/wI3dg6abDz1fW5gEtqmnW+475d3mkuuD5pPYfnn+cGCaSBTj0MIYft9yKw9It3s9Urqgt2bpIOFTJgUMoHsrhmdQHE0EyaRan7P/r5KngSyxRx6gXzzekXnArmdpdyks+VtIHuQtU6gObPwD5QHS3xA3dYaCZCPr5OjQH1rITfIDmbpxHFlbKArcdwzHsxeHGtZ9l4cKzl04ljJbSGOK/GS1SENdSB+jCUncbo9XrJo8B17jb1068WZY+qz68W5ZbGvdcK4SwopIVW50M3XFCPuzUOcddywq7U4NiAZCmFcbQFfL0zRpv8dIDat2NzFSKeyyYWZRltKL8wjftfs6ESpLBtezcJchzR4YrifjP6ueZsGJAx3tMC97oUpbfN8ieOXl9IL5JplWd3FKs4XL9Qfsp2rkLfPVnYAAAAASUVORK5CYII=');
+    }
+
+    .popupsharetext {
+        position: absolute;
+        top: 110px;
+        right: 20px;
+        left: 20px;
+        text-align: right;
+        font-size: 20px;
+        font-weight: bold;
+        letter-spacing: 2px;
+        color: #fff;
+        z-index: 2;
+
+        span {
+            padding: 10px;
+            font-size: 32px;
+            color: #fff;
+            vertical-align: middle;
+            letter-spacing: 0px;
+        }
+    }
+
+    .popupbg {
+        position: absolute;
+        top: 0px;
+        left: 0px;
+        right: 0px;
+        bottom: 0px;
+        background-color: rgba(0, 0, 0, .7);
+        z-index: 1;
     }
 }
 </style>

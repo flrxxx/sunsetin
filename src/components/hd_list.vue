@@ -25,10 +25,9 @@
 
                 </div>
             </div>
-            <router-link custom :to="{path:'/activitydetail',query:{id:item.id}}" v-slot="{ navigate}">
-                <div class="item_img" @click="navigate">
+            <div @click="checkdetail(item)">
+                <div class="item_img">
                     <div class="item_title">{{item.title}}</div>
-<!--                    <img :src="item.images">-->
                     <van-image :src="item.images" fit="contain">
                         <template v-slot:error><van-icon name="photo-fail" /></template>
                         <template v-slot:loading>
@@ -36,7 +35,7 @@
                         </template>
                     </van-image>
                 </div>
-            </router-link>
+            </div>
             <div class="item_footer">
                 <div class="item_label">
                     <div class="box_item" @click="dianzan(item)">
@@ -45,11 +44,11 @@
                         <div class="numberchange" :class="item.is_like_num != '0' && item.talkclick && talkclick? 'add' :''" >{{ item.is_like_num != '0' ? '+':'' }}1</div>
                         <div class="numberchange" :class="item.is_like_num == '0' && item.talkclick && talkclick? 'sub' :''" >{{ item.is_like_num == '0' ? '-':'' }}1</div>
                     </div>
-                    <div class="box_item">
+                    <div class="box_item" @click="checkdetail(item)">
                         <i class="icons elderlyicon-pinglunicon"></i>
                         <div class="item_text">{{item.talk}}</div>
                     </div>
-                    <div class="box_item">
+                    <div class="box_item" @click="shares(item)">
                         <i class="icons elderlyicon-fenxiang"></i>
                     </div>
                 </div>
@@ -82,7 +81,6 @@ export default {
     methods:{
         dianzan(item){
             if(!item.isdianzaning){
-
                 item.isdianzaning = true;
                 let param = new URLSearchParams();
                 param.append('id',item.id);
@@ -102,6 +100,25 @@ export default {
                 })
             }else{
                 Dialog.alert({message:'正在操作中，请勿重复点击'})
+            }
+        },
+        checkdetail(item){
+            this.$emit('itemclick',item);
+            // this.$router.push({path:'activitydetail',query:{id:item.id}})
+        },
+        shares(item){
+            let title = item.title;
+            let content =  item.team_name;
+            let imgUrl = item.image;
+            let titleUrl = window.location.origin + '/sunsetin/activitylist/activitydetail?id=' + item.id;
+            let url = window.location.origin + '/sunsetin/activitylist/activitydetail?id=' + item.id;
+            let siteUrl = window.location.origin + '/sunsetin/activitylist/activitydetail?id=' + item.id;
+            if(this.$android){
+                window.LanCareWeb.share(title,content,imgUrl,titleUrl,url,siteUrl);
+            }else if(this.$ios){
+                window.location.href = "objc:://sharesdk::/" + title + "::/" + content +"::/" + imgUrl +"::/" + titleUrl +"::/" +url +"::/" + siteUrl + "::/"+"";
+            }else{
+                this.$emit('sharediashow',item);
             }
         }
     },

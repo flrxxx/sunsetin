@@ -27,7 +27,7 @@
         <div class="activity_content" v-else>
             <div class="activity_title">{{activity.title}}</div>
             <div class="activity_imgside">
-                <van-image :src="activity.images" >
+                <van-image :src="activity.img" >
                     <template v-slot:error><div class="imgerror"><van-icon name="photo-fail" /></div></template>
                     <template v-slot:loading>
                         <van-loading type="spinner" size="20" />
@@ -38,8 +38,8 @@
             <div class="activity_htmlcontent" v-html="activity.description"></div>
             <div class="activity_title">活动时间</div>
             <div class="activity_htmlcontent">
-                <div class="activity_label">比赛时间：{{activity.match_begintime}} 至 {{activity.match_endtime}}</div>
                 <div class="activity_label">报名时间：{{activity.enter_begintime}} 至 {{activity.enter_endtime}}</div>
+                <div class="activity_label">比赛时间：{{activity.match_begintime}} 至 {{activity.match_endtime}}</div>
             </div>
             <div class="activity_title">其他详情</div>
             <div class="activity_htmlcontent">
@@ -69,7 +69,7 @@ export default {
             id:this.$route.query.id,
             loading:true,
             activity:{
-                images:'https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fpic1.win4000.com%2Fpic%2F8%2F53%2F2dd7443197.jpg&refer=http%3A%2F%2Fpic1.win4000.com&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=jpeg?sec=1629700303&t=5de4cc1079755113e6f3f5a65caeda83'
+                img:''
 
             }
         }
@@ -93,7 +93,7 @@ export default {
 
             })
         }else{
-            this.route.push({path:'/activityEnroll_list'})
+            this.$router.push({path:'/activityEnroll_list'})
         }
     }
 }
@@ -118,13 +118,16 @@ export default {
             font-size: 32px;
             color:#dcdee0;
         }
+        /deep/ .van-image__img{
+            height: auto;
+        }
     }
     .activity_htmlcontent{
         margin-bottom: 15px;
         /deep/ *{
             max-width: 100% !important;
             line-height: 20px;
-            font-size: 16px;
+            font-size: 14px;
         }
         /deep/ img{
             display: block;
