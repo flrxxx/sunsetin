@@ -83,7 +83,7 @@ export default {
             pageloading:false,
         }
     },
-    activated() {
+    mounted() {
         this.frominfo = this.$store.state.matchinfo;
         if(!this.frominfo.id){
             this.$router.push({path:'/activityEnroll_list'});

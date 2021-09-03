@@ -79,7 +79,7 @@ export default {
             this.$router.push({path:'/bmpage',query:{id:this.id}})
         }
     },
-    activated: function () {
+    mounted() {
         this.loading = true;
         this.id = this.$route.query.id;
         if(this.id) {
@@ -100,6 +100,9 @@ export default {
 </script>
 
 <style scoped lang="less">
+.content{
+    height: 0;
+}
 .activity_content{
     padding-bottom: 60px;
     .activity_title{

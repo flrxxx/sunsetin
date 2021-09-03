@@ -48,8 +48,9 @@
                     placeholder="请输入作品内容介绍"
                 />
             </van-cell-group>
-            <div class="activity_title_nomargin">才艺展示图片（图片不超过9张）</div>
-            <div class="labelteam">
+<!--            绽放夕阳二期关闭才艺展示-->
+            <div class="activity_title_nomargin" v-if="false">才艺展示图片（图片不超过9张）</div>
+            <div class="labelteam"  v-if="false">
                 <div class="imgteam" v-for="(item,index) in state.filelist" :key="index" >
                     <div class="imgteamcontent">
                         <div class="imgclose" @click="delcert(index)">
@@ -118,7 +119,7 @@ export default {
             loaddata:false,
             min:1,
             state:{
-                id:'',
+                id:this.$route.query.id,
                 work_name:'',
                 team_name:'',
                 work_type :[],
@@ -126,7 +127,8 @@ export default {
                 filelist:[],
                 message:'',
                 itemnumber:1,
-            }
+            },
+            id:this.$route.query.id
         }
     },
     beforeRouteEnter:(to,from,next)=>{
@@ -140,56 +142,34 @@ export default {
             })
         }
     },
-    activated(){
-        if(this.loaddata){
-            // this.state = this.$store.state.matchinfo;
-            // this.state.work_type = this.state.work_type ? this.state.work_type : [];
-            // this.state.itemtype = this.state.itemtype  ? this.state.itemtype  : '1';
-            // this.activity = this.$store.state.matchactivity;
-        }else{
-            this.state.work_name = '';
-            this.state.team_name = '';
-            this.state.work_type = [];
-            this.state.message = '';
-            this.state.itemtype = '1';
-            this.state.filelist = [];
-            this.activity.title = '';
-            this.activity.images = '';
-            this.id = this.$route.query.id;
-            this.state.id = this.id;
-            this.pageloading = true;
-            if(this.id) {
-                this.typelist = [];
-                let param = new URLSearchParams();
-                param.append('id', this.id);
-                this.$http.post('/tab:event_detail',param).then((res)=>{
-                    this.pageloading = false;
-                    if(res.res == 1){
-                        this.activity = res.data;
-                        this.$http.post('/tab:type_list').then((res)=>{
-                            if(res.res == 1){
-                                for(var i in res.data){
-                                    var temp = {};
-                                    temp.id = i;
-                                    temp.value = res.data[i];
-                                    this.typelist.push(temp);
-                                }
-
+    mounted(){
+        if(this.id) {
+            this.typelist = [];
+            let param = new URLSearchParams();
+            param.append('id', this.id);
+            this.$http.post('/tab:event_detail',param).then((res)=>{
+                this.pageloading = false;
+                if(res.res == 1){
+                    this.activity = res.data;
+                    this.$http.post('/tab:type_list').then((res)=>{
+                        if(res.res == 1){
+                            for(var i in res.data){
+                                var temp = {};
+                                temp.id = i;
+                                temp.value = res.data[i];
+                                this.typelist.push(temp);
                             }
-                        })
-                    }
-                })
-                window['AppUploadImgCallback'] = arr =>{
-                    this.AppUploadImgCallback(arr);
+
+                        }
+                    })
                 }
-            }else{
-                this.$router.push({path:'/activityEnroll_list'})
+            })
+            window['AppUploadImgCallback'] = arr =>{
+                this.AppUploadImgCallback(arr);
             }
+        }else{
+            this.$router.push({path:'/activityEnroll_list'})
         }
-
-
-
-
     },
     deactivated(){
         window['AppUploadImgCallback'] = function(){};
@@ -290,10 +270,10 @@ export default {
                 Dialog.alert({message:'请输入作品内容介绍'});
                 return false;
             }
-            if(this.state.filelist.length <= 0){
-                Dialog.alert({message:'请上传才艺展示图片'});
-                return false;
-            }
+            // if(this.state.filelist.length <= 0){
+            //     Dialog.alert({message:'请上传才艺展示图片'});
+            //     return false;
+            // }
             this.$store.commit('setactivity',this.activity);
             this.$store.commit('setmatchinfo',this.state);
             this.$router.push({path:'/itempage'})

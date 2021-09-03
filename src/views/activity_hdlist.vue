@@ -13,7 +13,6 @@ export default {
         leftBtnClick:function(){
             try{
                 var back = this.$refs.child.leftBtnClick();
-                console.log(back);
                 if(!back){
                     return false;
                 }else{

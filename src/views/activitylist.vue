@@ -16,7 +16,7 @@
                 <div class="activity_infoline">
                     <div class="space_item">
                         <i class="icons elderlyicon-shijian"></i>
-                        <div class="text">活动时间：{{activityinfo.time}}</div>
+                        <div class="text">投票时间：{{activityinfo.time}}</div>
                     </div>
                     <div class="card_type" :class="activityinfo.vote"><i class="icons"></i></div>
                 </div>
